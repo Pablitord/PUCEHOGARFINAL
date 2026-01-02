@@ -3,35 +3,33 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <h2><i class="bi bi-exclamation-triangle"></i> Gestión de Reportes</h2>
-  <div>
-    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
-      <i class="bi bi-arrow-left"></i> Volver
-    </a>
-  </div>
+  <h2 class="page-title"><i class="bi bi-exclamation-triangle"></i> Gestión de Reportes</h2>
+  <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left"></i> Volver
+  </a>
 </div>
 
-<div class="card shadow-sm">
+<div class="card app-card">
   <div class="card-body">
     {% if reports %}
       <div class="table-responsive">
-        <table class="table table-hover">
+        <table class="table align-middle table-hover">
           <thead>
             <tr>
               <th>Título</th>
               <th>Descripción</th>
               <th>Estado</th>
               <th>Fecha</th>
-              <th>Acciones</th>
+              <th class="text-end">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {% for report in reports %}
               <tr>
-                <td>{{ report.title }}</td>
-                <td>{{ report.description[:100] }}{% if report.description|length > 100 %}...{% endif %}</td>
+                <td class="fw-semibold">{{ report.title }}</td>
+                <td class="text-muted">{{ report.description[:100] }}{% if report.description|length > 100 %}...{% endif %}</td>
                 <td>
-                  <span class="badge bg-{{ 'primary' if report.status.value == 'open' else 'info' if report.status.value == 'in_progress' else 'success' if report.status.value == 'resolved' else 'secondary' }}">
+                  <span class="soft-badge {% if report.status.value == 'open' %}soft-badge-danger{% elif report.status.value == 'in_progress' %}soft-badge-warning{% elif report.status.value == 'resolved' %}soft-badge-success{% else %}soft-badge-muted{% endif %}">
                     {{ report.status.value|title }}
                   </span>
                 </td>
@@ -44,10 +42,10 @@
                     N/A
                   {% endif %}
                 </td>
-                <td>
+                <td class="text-end">
                   {% if report.status.value == 'open' or report.status.value == 'in_progress' %}
                     <form method="POST" action="{{ url_for('admin.resolve_report', report_id=report.id) }}" class="d-inline">
-                      <button type="submit" class="btn btn-sm btn-success">
+                      <button type="submit" class="btn btn-sm btn-primary">
                         <i class="bi bi-check-circle"></i> Resolver
                       </button>
                     </form>

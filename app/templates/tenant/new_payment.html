@@ -3,27 +3,37 @@
 
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-md-6">
-    <div class="card shadow">
-      <div class="card-header bg-primary text-white">
-        <h5 class="mb-0"><i class="bi bi-credit-card"></i> Registrar Nuevo Pago</h5>
+  <div class="col-lg-7">
+    <div class="app-card p-4">
+      <div class="d-flex align-items-center gap-2 mb-4">
+        <i class="bi bi-credit-card text-primary fs-4"></i>
+        <div>
+          <h4 class="mb-0 fw-bold">Registrar Nuevo Pago</h4>
+          <p class="text-muted mb-0">Completa la información para registrar el pago</p>
+        </div>
       </div>
-      <div class="card-body">
-        <form method="POST" action="{{ url_for('tenant.new_payment') }}" enctype="multipart/form-data">
-          <div class="mb-3">
+
+      <form method="POST" action="{{ url_for('tenant.new_payment') }}" enctype="multipart/form-data">
+        <div class="border rounded-3 p-3 mb-3">
+          <h6 class="text-muted mb-2">Monto</h6>
+          <div class="mb-2">
             <label for="amount" class="form-label">Monto *</label>
             <input 
               type="number" 
               step="0.01" 
               min="0.01" 
-              class="form-control" 
+              class="form-control"
               id="amount" 
               name="amount" 
               required
             >
+            <small class="form-text">Ingresa el monto correspondiente al mes.</small>
           </div>
+        </div>
 
-          <div class="mb-3">
+        <div class="border rounded-3 p-3 mb-3">
+          <h6 class="text-muted mb-2">Mes de pago</h6>
+          <div class="mb-2">
             <label for="month" class="form-label">Mes *</label>
             <input 
               type="month" 
@@ -32,10 +42,13 @@
               name="month" 
               required
             >
-            <small class="form-text text-muted">Formato: YYYY-MM (ej: 2024-01)</small>
+            <small class="form-text text-muted">Formato: YYYY-MM (ej: 2026-01)</small>
           </div>
+        </div>
 
-          <div class="mb-3">
+        <div class="border rounded-3 p-3 mb-3">
+          <h6 class="text-muted mb-2">Notas</h6>
+          <div class="mb-2">
             <label for="notes" class="form-label">Notas (opcional)</label>
             <textarea 
               class="form-control" 
@@ -44,8 +57,11 @@
               rows="3"
             ></textarea>
           </div>
+        </div>
 
-          <div class="mb-3">
+        <div class="border rounded-3 p-3 mb-4">
+          <h6 class="text-muted mb-2">Comprobante</h6>
+          <div class="mb-2">
             <label for="receipt" class="form-label">Comprobante de pago *</label>
             <input
               type="file"
@@ -55,19 +71,19 @@
               accept="image/*,.pdf"
               required
             >
-            <small class="form-text text-muted">Obligatorio. Máx 10MB.</small>
+            <small class="form-text text-muted">Obligatorio. Máx 10MB. Formatos: imagen o PDF.</small>
           </div>
+        </div>
 
-          <div class="d-grid gap-2">
-            <button type="submit" class="btn btn-primary">
-              <i class="bi bi-check-circle"></i> Registrar Pago
-            </button>
-            <a href="{{ url_for('tenant.dashboard') }}" class="btn btn-outline-secondary">
-              <i class="bi bi-x-circle"></i> Cancelar
-            </a>
-          </div>
-        </form>
-      </div>
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-primary btn-lg">
+            <i class="bi bi-check-circle"></i> Registrar Pago
+          </button>
+          <a href="{{ url_for('tenant.dashboard') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-circle"></i> Cancelar
+          </a>
+        </div>
+      </form>
     </div>
   </div>
 </div>

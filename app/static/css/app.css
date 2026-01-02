@@ -1,56 +1,199 @@
-/* Estilos personalizados para PUCEHOGAR */
+/* ------------------------------------------
+   Variables y base
+------------------------------------------- */
+:root {
+  --app-bg: #f6f7fb;
+  --app-card-bg: #ffffff;
+  --app-border: #e5e7ef;
+  --app-shadow: 0 6px 18px rgba(17, 24, 39, 0.08);
+  --app-radius: 12px;
+  --app-primary: #0d6efd;
+  --app-success: #16a34a;
+  --app-warning: #f59e0b;
+  --app-danger: #dc3545;
+  --app-muted: #6b7280;
+}
 
 body {
-    background-color: #f8f9fa;
+  background-color: var(--app-bg);
+  color: #111827;
 }
 
-.card {
-    border: none;
-    border-radius: 10px;
-}
-
-.card-header {
-    border-radius: 10px 10px 0 0 !important;
+.navbar {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
 }
 
 .navbar-brand {
-    font-weight: bold;
-    font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
 }
 
-.shadow-sm {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+.nav-link.active {
+  font-weight: 600;
+}
+
+.user-pill {
+  background: rgba(255,255,255,0.12);
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+main.container-xxl {
+  max-width: 1280px;
+}
+
+/* ------------------------------------------
+   Cards y badges
+------------------------------------------- */
+.app-card {
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  box-shadow: var(--app-shadow);
+}
+
+.card-hover {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(17,24,39,0.12);
+}
+
+.soft-badge {
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-weight: 600;
+}
+.soft-badge-primary { background: #e8f1ff; color: #0d6efd; }
+.soft-badge-success { background: #e6f7ed; color: #15803d; }
+.soft-badge-warning { background: #fff6e5; color: #c27803; }
+.soft-badge-danger  { background: #fdecec; color: #b91c1c; }
+.soft-badge-muted   { background: #eef1f6; color: #4b5563; }
+
+.page-title {
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.meta-line {
+  color: var(--app-muted);
+  font-size: 0.95rem;
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.img-cover {
+  object-fit: cover;
+  width: 100%;
+}
+
+.ratio-16x9 {
+  position: relative;
+  padding-top: 56.25%;
+}
+.ratio-16x9 > img,
+.ratio-16x9 > div {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.link-stretched {
+  position: relative;
+}
+
+/* ------------------------------------------
+   Forms y botones
+------------------------------------------- */
+.form-label {
+  font-weight: 600;
+}
+
+.form-text {
+  color: var(--app-muted);
 }
 
 .btn {
-    border-radius: 5px;
+  border-radius: 10px;
 }
 
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.input-auto {
+  border: 1px solid #cfe2ff;
+  background: #f0f6ff;
+}
+
+/* ------------------------------------------
+   Tables y listas
+------------------------------------------- */
+.table thead th {
+  color: #4b5563;
+  font-weight: 600;
+  border-bottom: 1px solid var(--app-border);
+}
+.table tbody td {
+  vertical-align: middle;
+}
 .table-hover tbody tr:hover {
-    background-color: rgba(0, 0, 0, 0.02);
+  background-color: #f9fafb;
+}
+
+/* ------------------------------------------
+   Layouts específicos
+------------------------------------------- */
+.filters-toggle {
+  display: none;
+}
+@media (max-width: 768px) {
+  .filters-toggle { display: block; }
+  .filters-collapse { margin-top: 1rem; }
+}
+
+.sticky-panel {
+  position: sticky;
+  top: 80px;
+}
+@media (max-width: 991px) {
+  .sticky-panel { position: static; }
+}
+
+/* ------------------------------------------
+   Footer
+------------------------------------------- */
+footer {
+  background: #111827;
+  color: #e5e7ef;
+}
+footer .text-secondary {
+  color: #9ca3af !important;
+}
+
+/* ------------------------------------------
+   Misc
+------------------------------------------- */
+.placeholder-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.card-img-top {
+  transition: transform 0.25s ease;
+}
+.card-hover:hover .card-img-top {
+  transform: scale(1.04);
 }
 
 .badge {
-    font-weight: 500;
+  font-weight: 600;
 }
-
-.alert {
-    border-radius: 8px;
-}
-
-/* Mejoras visuales */
-.card-img-top {
-    transition: transform 0.3s;
-}
-
-.card:hover .card-img-top {
-    transform: scale(1.05);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .container {
-        padding: 0 15px;
-    }
-}
-

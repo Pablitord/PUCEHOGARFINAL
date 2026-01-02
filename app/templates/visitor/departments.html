@@ -3,123 +3,139 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <h2><i class="bi bi-building"></i> Departamentos Disponibles</h2>
+  <h2 class="page-title"><i class="bi bi-building"></i> Departamentos Disponibles</h2>
+  <button class="btn btn-outline-secondary d-md-none filters-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse">
+    <i class="bi bi-funnel"></i> Filtros
+  </button>
 </div>
 
 <!-- Filtros -->
-<div class="card shadow-sm mb-4">
-  <div class="card-header bg-light">
-    <h5 class="mb-0"><i class="bi bi-funnel"></i> Filtros de Búsqueda</h5>
-  </div>
+<div class="card app-card mb-4">
   <div class="card-body">
-    <form method="GET" action="{{ url_for('visitor.home') }}">
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <label class="form-label fw-bold">Características</label>
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="has_terrace" value="1" id="filter_terrace" {% if active_filters.has_terrace %}checked{% endif %}>
-                <label class="form-check-label" for="filter_terrace"><i class="bi bi-house-door"></i> Con Terraza</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="has_balcony" value="1" id="filter_balcony" {% if active_filters.has_balcony %}checked{% endif %}>
-                <label class="form-check-label" for="filter_balcony"><i class="bi bi-door-open"></i> Con Balcón</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="sea_view" value="1" id="filter_sea_view" {% if active_filters.sea_view %}checked{% endif %}>
-                <label class="form-check-label" for="filter_sea_view"><i class="bi bi-water"></i> Vista al Mar</label>
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <i class="bi bi-funnel text-primary"></i>
+      <h5 class="mb-0">Filtros de Búsqueda</h5>
+    </div>
+    <div class="collapse show d-md-block filters-collapse" id="filtersCollapse">
+      <form method="GET" action="{{ url_for('visitor.home') }}">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+              <h6 class="text-muted mb-3">Características</h6>
+              <div class="row">
+                <div class="col-sm-6">
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" name="has_terrace" value="1" id="filter_terrace" {% if active_filters.has_terrace %}checked{% endif %}>
+                    <label class="form-check-label" for="filter_terrace"><i class="bi bi-house-door"></i> Con Terraza</label>
+                  </div>
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" name="has_balcony" value="1" id="filter_balcony" {% if active_filters.has_balcony %}checked{% endif %}>
+                    <label class="form-check-label" for="filter_balcony"><i class="bi bi-door-open"></i> Con Balcón</label>
+                  </div>
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" name="sea_view" value="1" id="filter_sea_view" {% if active_filters.sea_view %}checked{% endif %}>
+                    <label class="form-check-label" for="filter_sea_view"><i class="bi bi-water"></i> Vista al Mar</label>
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" name="parking" value="1" id="filter_parking" {% if active_filters.parking %}checked{% endif %}>
+                    <label class="form-check-label" for="filter_parking"><i class="bi bi-car-front"></i> Estacionamiento</label>
+                  </div>
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" name="furnished" value="1" id="filter_furnished" {% if active_filters.furnished %}checked{% endif %}>
+                    <label class="form-check-label" for="filter_furnished"><i class="bi bi-lamp"></i> Amueblado</label>
+                  </div>
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" name="allow_pets" value="1" id="filter_allow_pets" {% if active_filters.allow_pets %}checked{% endif %}>
+                    <label class="form-check-label" for="filter_allow_pets"><i class="bi bi-heart"></i> Permite mascotas</label>
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="col-md-6">
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="parking" value="1" id="filter_parking" {% if active_filters.parking %}checked{% endif %}>
-                <label class="form-check-label" for="filter_parking"><i class="bi bi-car-front"></i> Estacionamiento</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="furnished" value="1" id="filter_furnished" {% if active_filters.furnished %}checked{% endif %}>
-                <label class="form-check-label" for="filter_furnished"><i class="bi bi-lamp"></i> Amueblado</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="allow_pets" value="1" id="filter_allow_pets" {% if active_filters.allow_pets %}checked{% endif %}>
-                <label class="form-check-label" for="filter_allow_pets"><i class="bi bi-heart"></i> Permite mascotas</label>
+          </div>
+
+          <div class="col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+              <h6 class="text-muted mb-3">Precio y Habitaciones</h6>
+              <div class="row g-3">
+                <div class="col-sm-6">
+                  <label for="min_price" class="form-label">Precio Mínimo</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" step="0.01" min="0" class="form-control" id="min_price" name="min_price" value="{{ active_filters.min_price }}" placeholder="0.00">
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <label for="max_price" class="form-label">Precio Máximo</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" step="0.01" min="0" class="form-control" id="max_price" name="max_price" value="{{ active_filters.max_price }}" placeholder="9999.99">
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <label for="min_rooms" class="form-label">Mín. Habitaciones</label>
+                  <input type="number" min="0" class="form-control" id="min_rooms" name="min_rooms" value="{{ active_filters.min_rooms }}" placeholder="0">
+                </div>
+                <div class="col-sm-6">
+                  <label for="max_rooms" class="form-label">Máx. Habitaciones</label>
+                  <input type="number" min="0" class="form-control" id="max_rooms" name="max_rooms" value="{{ active_filters.max_rooms }}" placeholder="10">
+                </div>
               </div>
             </div>
           </div>
         </div>
-        <div class="col-md-6 mb-3">
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="min_price" class="form-label fw-bold">Precio Mínimo</label>
-              <div class="input-group">
-                <span class="input-group-text">$</span>
-                <input type="number" step="0.01" min="0" class="form-control" id="min_price" name="min_price" value="{{ active_filters.min_price }}" placeholder="0.00">
-              </div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="max_price" class="form-label fw-bold">Precio Máximo</label>
-              <div class="input-group">
-                <span class="input-group-text">$</span>
-                <input type="number" step="0.01" min="0" class="form-control" id="max_price" name="max_price" value="{{ active_filters.max_price }}" placeholder="9999.99">
-              </div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="min_rooms" class="form-label fw-bold">Mín. Habitaciones</label>
-              <input type="number" min="0" class="form-control" id="min_rooms" name="min_rooms" value="{{ active_filters.min_rooms }}" placeholder="0">
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="max_rooms" class="form-label fw-bold">Máx. Habitaciones</label>
-              <input type="number" min="0" class="form-control" id="max_rooms" name="max_rooms" value="{{ active_filters.max_rooms }}" placeholder="10">
-            </div>
-          </div>
+
+        <div class="d-flex gap-2 mt-3">
+          <button type="submit" class="btn btn-primary btn-icon"><i class="bi bi-search"></i> Filtrar</button>
+          <a href="{{ url_for('visitor.home') }}" class="btn btn-outline-secondary btn-icon"><i class="bi bi-x-circle"></i> Limpiar</a>
         </div>
-      </div>
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filtrar</button>
-        <a href="{{ url_for('visitor.home') }}" class="btn btn-outline-secondary"><i class="bi bi-x-circle"></i> Limpiar Filtros</a>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
 </div>
 
 {% if departments %}
-  <div class="row">
+  <div class="row g-4">
     {% for dept in departments %}
-      <div class="col-md-4 mb-4">
-        <div class="card h-100 shadow-sm">
+      <div class="col-md-4">
+        <div class="card app-card h-100 card-hover">
           {% set display_img = dept.image_url or dept.image_url_2 or dept.image_url_3 %}
-          {% if display_img %}
-            <img src="{{ display_img }}" class="card-img-top" alt="{{ dept.title }}" style="height: 200px; object-fit: cover;">
-          {% else %}
-            <div class="card-img-top bg-gradient d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-              <div class="text-center text-white">
-                <i class="bi bi-building" style="font-size: 4rem; opacity: 0.7;"></i>
-                <p class="mt-2 mb-0" style="font-size: 0.9rem; opacity: 0.9;">{{ dept.title }}</p>
+          <div class="ratio-16x9">
+            {% if display_img %}
+              <img src="{{ display_img }}" class="img-cover" alt="{{ dept.title }}">
+            {% else %}
+              <div class="placeholder-gradient d-flex align-items-center justify-content-center text-white">
+                <div class="text-center">
+                  <i class="bi bi-building" style="font-size: 3rem; opacity: 0.85;"></i>
+                  <p class="mt-2 mb-0">{{ dept.title }}</p>
+                </div>
               </div>
-            </div>
-          {% endif %}
+            {% endif %}
+          </div>
           <div class="card-body d-flex flex-column">
-            <h5 class="card-title">{{ dept.title }}</h5>
-            <p class="card-text text-muted"><i class="bi bi-geo-alt"></i> {{ dept.address }}</p>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h5 class="fw-semibold mb-0">{{ dept.title }}</h5>
+              <span class="soft-badge soft-badge-success">${{ "%.2f"|format(dept.price) }}</span>
+            </div>
+            <p class="meta-line mb-2"><i class="bi bi-geo-alt"></i> {{ dept.address }}</p>
             {% if dept.rooms %}
-              <p class="card-text">
-                <i class="bi bi-door-open"></i> {{ dept.rooms }} habitaciones
-                {% if dept.bathrooms %}| <i class="bi bi-droplet"></i> {{ dept.bathrooms }} baños{% endif %}
+              <p class="meta-line mb-2">
+                <i class="bi bi-door-open"></i> {{ dept.rooms }} hab{% if dept.bathrooms %}, {{ dept.bathrooms }} baños{% endif %}
               </p>
             {% endif %}
-            <div class="mb-2">
-              {% if dept.has_terrace %}<span class="badge bg-info me-1"><i class="bi bi-house-door"></i> Terraza</span>{% endif %}
-              {% if dept.has_balcony %}<span class="badge bg-info me-1"><i class="bi bi-door-open"></i> Balcón</span>{% endif %}
-              {% if dept.sea_view %}<span class="badge bg-primary me-1"><i class="bi bi-water"></i> Vista al Mar</span>{% endif %}
-              {% if dept.parking %}<span class="badge bg-success me-1"><i class="bi bi-car-front"></i> Parking</span>{% endif %}
-              {% if dept.furnished %}<span class="badge bg-warning text-dark me-1"><i class="bi bi-lamp"></i> Amueblado</span>{% endif %}
-              <span class="badge {% if dept.allow_pets %}bg-success{% else %}bg-danger{% endif %} text-white me-1">
-                {% if dept.allow_pets %}<i class="bi bi-paw"></i> Permite mascotas{% else %}<i class="bi bi-slash-circle"></i> No mascotas{% endif %}
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              {% if dept.has_terrace %}<span class="soft-badge soft-badge-primary"><i class="bi bi-house-door"></i> Terraza</span>{% endif %}
+              {% if dept.has_balcony %}<span class="soft-badge soft-badge-primary"><i class="bi bi-door-open"></i> Balcón</span>{% endif %}
+              {% if dept.sea_view %}<span class="soft-badge soft-badge-primary"><i class="bi bi-water"></i> Vista mar</span>{% endif %}
+              {% if dept.parking %}<span class="soft-badge soft-badge-success"><i class="bi bi-car-front"></i> Parking</span>{% endif %}
+              {% if dept.furnished %}<span class="soft-badge soft-badge-warning"><i class="bi bi-lamp"></i> Amoblado</span>{% endif %}
+              <span class="soft-badge {% if dept.allow_pets %}soft-badge-success{% else %}soft-badge-danger{% endif %}">
+                {% if dept.allow_pets %}<i class="bi bi-paw"></i> Mascotas{% else %}<i class="bi bi-slash-circle"></i> No mascotas{% endif %}
               </span>
             </div>
             <div class="mt-auto">
-              <h4 class="text-primary">${{ "%.2f"|format(dept.price) }}</h4>
-              <a href="{{ url_for('visitor.department_detail', department_id=dept.id) }}" class="btn btn-primary w-100">
+              <a href="{{ url_for('visitor.department_detail', department_id=dept.id) }}" class="btn btn-primary w-100 link-stretched">
                 <i class="bi bi-eye"></i> Ver Detalle
               </a>
             </div>
@@ -129,7 +145,7 @@
     {% endfor %}
   </div>
 {% else %}
-  <div class="alert alert-info">
+  <div class="alert alert-info app-card">
     <i class="bi bi-info-circle"></i> No hay departamentos disponibles en este momento.
   </div>
 {% endif %}

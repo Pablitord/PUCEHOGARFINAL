@@ -3,51 +3,91 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <h2><i class="bi bi-speedometer2"></i> Panel Administrador</h2>
-  <div>
-    <a href="{{ url_for('admin.departments_list') }}" class="btn btn-primary">
+  <h2 class="page-title"><i class="bi bi-speedometer2"></i> Panel Administrador</h2>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('admin.departments_list') }}" class="btn btn-outline-secondary btn-sm">
       <i class="bi bi-building"></i> Departamentos
     </a>
-    <a href="{{ url_for('admin.payments_list') }}" class="btn btn-success">
+    <a href="{{ url_for('admin.payments_list') }}" class="btn btn-primary btn-sm">
       <i class="bi bi-credit-card"></i> Pagos
     </a>
-    <a href="{{ url_for('admin.reports_list') }}" class="btn btn-warning">
+    <a href="{{ url_for('admin.reports_list') }}" class="btn btn-outline-secondary btn-sm">
       <i class="bi bi-exclamation-triangle"></i> Reportes
     </a>
-    <a href="{{ url_for('admin.create_admin') }}" class="btn btn-outline-danger">
+    <a href="{{ url_for('admin.create_admin') }}" class="btn btn-outline-danger btn-sm">
       <i class="bi bi-shield-lock"></i> Crear Admin
     </a>
   </div>
 </div>
 
-<div class="row">
+<!-- KPIs -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="app-card p-3 h-100">
+      <p class="text-muted mb-1">Pagos pendientes</p>
+      <h4 class="fw-bold mb-0">{{ pending_payments|length }}</h4>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="app-card p-3 h-100">
+      <p class="text-muted mb-1">Pagos aprobados (mes)</p>
+      <h4 class="fw-bold mb-0">0</h4>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="app-card p-3 h-100">
+      <p class="text-muted mb-1">Pagos rechazados (mes)</p>
+      <h4 class="fw-bold mb-0">0</h4>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="app-card p-3 h-100">
+      <p class="text-muted mb-1">Reportes abiertos</p>
+      <h4 class="fw-bold mb-0">{{ open_reports|length }}</h4>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
   <!-- Pagos Pendientes -->
-  <div class="col-md-6">
-    <div class="card shadow-sm mb-4">
-      <div class="card-header bg-warning text-dark">
-        <h5 class="mb-0">
-          <i class="bi bi-credit-card"></i> Pagos Pendientes
-          <span class="badge bg-dark">{{ pending_payments|length }}</span>
-        </h5>
-      </div>
+  <div class="col-lg-6">
+    <div class="card app-card h-100">
       <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-credit-card text-warning"></i>
+            <h5 class="mb-0">Pagos Pendientes</h5>
+          </div>
+          <span class="soft-badge soft-badge-muted">{{ pending_payments|length }}</span>
+        </div>
         {% if pending_payments %}
-          <div class="list-group">
-            {% for payment in pending_payments[:5] %}
-              <div class="list-group-item">
-                <div class="d-flex w-100 justify-content-between">
-                  <div>
-                    <h6 class="mb-1">${{ "%.2f"|format(payment.amount) }}</h6>
-                    <p class="mb-1 text-muted">{{ payment.month }}</p>
-                  </div>
-                  <div>
-                    <a href="{{ url_for('admin.payments_list') }}" class="btn btn-sm btn-outline-primary">
-                      <i class="bi bi-eye"></i> Ver
-                    </a>
-                  </div>
-                </div>
-              </div>
-            {% endfor %}
+          <div class="table-responsive">
+            <table class="table align-middle table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Monto</th>
+                  <th>Mes</th>
+                  <th>Depto.</th>
+                  <th>Estado</th>
+                  <th class="text-end">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for payment in pending_payments[:5] %}
+                  <tr>
+                    <td>${{ "%.2f"|format(payment.amount) }}</td>
+                    <td>{{ payment.month }}</td>
+                    <td>{{ payment.department.title if payment.department else 'N/D' }}</td>
+                    <td><span class="soft-badge soft-badge-warning text-uppercase">Pending</span></td>
+                    <td class="text-end">
+                      <a href="{{ url_for('admin.payments_list') }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye"></i> Ver
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
           </div>
           {% if pending_payments|length > 5 %}
             <div class="text-center mt-3">
@@ -57,39 +97,47 @@
             </div>
           {% endif %}
         {% else %}
-          <p class="text-muted text-center">No hay pagos pendientes.</p>
+          <p class="text-muted mb-0">No hay pagos pendientes.</p>
         {% endif %}
       </div>
     </div>
   </div>
 
   <!-- Reportes Abiertos -->
-  <div class="col-md-6">
-    <div class="card shadow-sm mb-4">
-      <div class="card-header bg-danger text-white">
-        <h5 class="mb-0">
-          <i class="bi bi-exclamation-triangle"></i> Reportes Abiertos
-          <span class="badge bg-light text-dark">{{ open_reports|length }}</span>
-        </h5>
-      </div>
+  <div class="col-lg-6">
+    <div class="card app-card h-100">
       <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-exclamation-triangle text-danger"></i>
+            <h5 class="mb-0">Reportes Abiertos</h5>
+          </div>
+          <span class="soft-badge soft-badge-muted">{{ open_reports|length }}</span>
+        </div>
         {% if open_reports %}
-          <div class="list-group">
-            {% for report in open_reports[:5] %}
-              <div class="list-group-item">
-                <div class="d-flex w-100 justify-content-between">
-                  <div>
-                    <h6 class="mb-1">{{ report.title }}</h6>
-                    <p class="mb-1 text-muted">{{ report.description[:50] }}...</p>
-                  </div>
-                  <div>
-                    <a href="{{ url_for('admin.reports_list') }}" class="btn btn-sm btn-outline-primary">
-                      <i class="bi bi-eye"></i> Ver
-                    </a>
-                  </div>
-                </div>
-              </div>
-            {% endfor %}
+          <div class="table-responsive">
+            <table class="table align-middle table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Título</th>
+                  <th>Descripción</th>
+                  <th class="text-end">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for report in open_reports[:5] %}
+                  <tr>
+                    <td class="fw-semibold">{{ report.title }}</td>
+                    <td class="text-muted">{{ report.description[:60] }}{% if report.description|length > 60 %}...{% endif %}</td>
+                    <td class="text-end">
+                      <a href="{{ url_for('admin.reports_list') }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye"></i> Ver
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
           </div>
           {% if open_reports|length > 5 %}
             <div class="text-center mt-3">
@@ -99,7 +147,7 @@
             </div>
           {% endif %}
         {% else %}
-          <p class="text-muted text-center">No hay reportes abiertos.</p>
+          <p class="text-muted mb-0">No hay reportes abiertos.</p>
         {% endif %}
       </div>
     </div>
