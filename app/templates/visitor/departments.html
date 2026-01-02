@@ -40,6 +40,10 @@
                 <input class="form-check-input" type="checkbox" name="furnished" value="1" id="filter_furnished" {% if active_filters.furnished %}checked{% endif %}>
                 <label class="form-check-label" for="filter_furnished"><i class="bi bi-lamp"></i> Amueblado</label>
               </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="allow_pets" value="1" id="filter_allow_pets" {% if active_filters.allow_pets %}checked{% endif %}>
+                <label class="form-check-label" for="filter_allow_pets"><i class="bi bi-heart"></i> Permite mascotas</label>
+              </div>
             </div>
           </div>
         </div>
@@ -83,8 +87,9 @@
     {% for dept in departments %}
       <div class="col-md-4 mb-4">
         <div class="card h-100 shadow-sm">
-          {% if dept.image_url %}
-            <img src="{{ dept.image_url }}" class="card-img-top" alt="{{ dept.title }}" style="height: 200px; object-fit: cover;">
+          {% set display_img = dept.image_url or dept.image_url_2 or dept.image_url_3 %}
+          {% if display_img %}
+            <img src="{{ display_img }}" class="card-img-top" alt="{{ dept.title }}" style="height: 200px; object-fit: cover;">
           {% else %}
             <div class="card-img-top bg-gradient d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
               <div class="text-center text-white">
@@ -102,15 +107,16 @@
                 {% if dept.bathrooms %}| <i class="bi bi-droplet"></i> {{ dept.bathrooms }} baños{% endif %}
               </p>
             {% endif %}
-            {% if dept.has_terrace or dept.has_balcony or dept.sea_view or dept.parking or dept.furnished %}
-              <div class="mb-2">
-                {% if dept.has_terrace %}<span class="badge bg-info me-1"><i class="bi bi-house-door"></i> Terraza</span>{% endif %}
-                {% if dept.has_balcony %}<span class="badge bg-info me-1"><i class="bi bi-door-open"></i> Balcón</span>{% endif %}
-                {% if dept.sea_view %}<span class="badge bg-primary me-1"><i class="bi bi-water"></i> Vista al Mar</span>{% endif %}
-                {% if dept.parking %}<span class="badge bg-success me-1"><i class="bi bi-car-front"></i> Parking</span>{% endif %}
-                {% if dept.furnished %}<span class="badge bg-warning text-dark me-1"><i class="bi bi-lamp"></i> Amueblado</span>{% endif %}
-              </div>
-            {% endif %}
+            <div class="mb-2">
+              {% if dept.has_terrace %}<span class="badge bg-info me-1"><i class="bi bi-house-door"></i> Terraza</span>{% endif %}
+              {% if dept.has_balcony %}<span class="badge bg-info me-1"><i class="bi bi-door-open"></i> Balcón</span>{% endif %}
+              {% if dept.sea_view %}<span class="badge bg-primary me-1"><i class="bi bi-water"></i> Vista al Mar</span>{% endif %}
+              {% if dept.parking %}<span class="badge bg-success me-1"><i class="bi bi-car-front"></i> Parking</span>{% endif %}
+              {% if dept.furnished %}<span class="badge bg-warning text-dark me-1"><i class="bi bi-lamp"></i> Amueblado</span>{% endif %}
+              <span class="badge {% if dept.allow_pets %}bg-success{% else %}bg-danger{% endif %} text-white me-1">
+                {% if dept.allow_pets %}<i class="bi bi-paw"></i> Permite mascotas{% else %}<i class="bi bi-slash-circle"></i> No mascotas{% endif %}
+              </span>
+            </div>
             <div class="mt-auto">
               <h4 class="text-primary">${{ "%.2f"|format(dept.price) }}</h4>
               <a href="{{ url_for('visitor.department_detail', department_id=dept.id) }}" class="btn btn-primary w-100">

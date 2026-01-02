@@ -18,6 +18,22 @@
         </div>
 
         <form method="POST" action="{{ url_for('visitor.pay_department', department_id=department.id) }}" enctype="multipart/form-data">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="start_date" class="form-label">Inicio de reserva (opcional)</label>
+              <input type="date" class="form-control" id="start_date" name="start_date">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="end_date" class="form-label">Fin de reserva (opcional)</label>
+              <input type="date" class="form-control" id="end_date" name="end_date">
+            </div>
+            <div class="col-12 mb-2">
+              <small class="form-text text-muted" id="reservation_hint">
+                Si eliges fechas, prorratearemos: (precio mensual / 30) * días reservados. Máx. 30 días.
+              </small>
+            </div>
+          </div>
+
           <div class="mb-3">
             <label for="amount" class="form-label">Monto a pagar *</label>
             <div class="input-group">
@@ -33,7 +49,7 @@
                 required
               >
             </div>
-            <small class="form-text text-muted">Puedes ajustar el monto si es necesario</small>
+            <small class="form-text text-muted" id="amount_hint">Puedes ajustar el monto; mínimo: precio prorrateado.</small>
           </div>
 
           <div class="mb-3">
@@ -87,3 +103,68 @@
 </div>
 {% endblock %}
 
+{% block scripts %}
+{{ super() }}
+<script>
+  (function() {
+    const price = {{ "%.4f"|format(department.price) }};
+    const startInput = document.getElementById('start_date');
+    const endInput = document.getElementById('end_date');
+    const amountInput = document.getElementById('amount');
+    const hint = document.getElementById('reservation_hint');
+    const amountHint = document.getElementById('amount_hint');
+    const monthInput = document.getElementById('month');
+
+    // Limitar selección de mes: actual y dos meses atrás
+    if (monthInput) {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth(); // 0-based
+      const pad = (v) => String(v).padStart(2, '0');
+      const max = `${year}-${pad(month + 1)}`;
+      let backMonth = month - 2;
+      let backYear = year;
+      if (backMonth < 0) { backMonth += 12; backYear -= 1; }
+      const min = `${backYear}-${pad(backMonth + 1)}`;
+      monthInput.min = min;
+      monthInput.max = max;
+    }
+
+    function updateAmount() {
+      const startVal = startInput.value;
+      const endVal = endInput.value;
+      if (!startVal && !endVal) {
+        amountInput.value = price.toFixed(2);
+        hint.textContent = 'Si eliges fechas, prorratearemos: (precio mensual / 30) * días reservados. Máx. 30 días.';
+        amountHint.textContent = 'Puedes ajustar el monto; mínimo: precio prorrateado.';
+        return;
+      }
+      if (!startVal || !endVal) {
+        hint.textContent = 'Selecciona fecha inicio y fin. Máx. 30 días.';
+        return;
+      }
+      const start = new Date(startVal + 'T00:00:00');
+      const end = new Date(endVal + 'T00:00:00');
+      if (end < start) {
+        hint.textContent = 'La fecha fin no puede ser menor que la fecha inicio.';
+        return;
+      }
+      const diffMs = end - start;
+      const days = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+      if (days < 1 || days > 30) {
+        hint.textContent = 'El rango de reserva debe ser entre 1 y 30 días.';
+        return;
+      }
+      const daily = price / 30.0;
+      const prorated = (daily * days);
+      amountInput.value = prorated.toFixed(2);
+      hint.textContent = `Reserva de ${days} día(s). Monto prorrateado: $${prorated.toFixed(2)}.`;
+      amountHint.textContent = 'Monto ajustado automáticamente al prorrateo.';
+    }
+
+    startInput.addEventListener('change', updateAmount);
+    endInput.addEventListener('change', updateAmount);
+    updateAmount();
+  })();
+</script>
+{% endblock %}

@@ -19,6 +19,7 @@
           <thead>
             <tr>
               <th>Mes</th>
+              <th>Departamento</th>
               <th>Monto</th>
               <th>Estado</th>
               <th>Comprobante</th>
@@ -29,6 +30,14 @@
             {% for payment in payments %}
               <tr>
                 <td>{{ payment.month }}</td>
+                <td>
+                  {% set dept = departments_map.get(payment.department_id) %}
+                  {% if dept %}
+                    {{ dept.title }}
+                  {% else %}
+                    <span class="text-muted">N/D</span>
+                  {% endif %}
+                </td>
                 <td>${{ "%.2f"|format(payment.amount) }}</td>
                 <td>
                   <span class="badge bg-{{ 'warning' if payment.status.value == 'pending' else 'success' if payment.status.value == 'approved' else 'danger' }}">

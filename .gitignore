@@ -22,9 +22,9 @@ wheels/
 
 # Virtual Environment
 venv/
-env/
+ env/
 ENV/
-env.bak/
+#env.bak/
 venv.bak/
 
 # Flask

@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from datetime import datetime, date
 
 from ..domain.enums import DepartmentStatus, UserRole
 from .auth_routes import require_auth
@@ -30,6 +31,8 @@ def home():
         filters["parking"] = True
     if request.args.get("furnished") == "1":
         filters["furnished"] = True
+    if request.args.get("allow_pets") == "1":
+        filters["allow_pets"] = True
     # Rangos
     def _parse_float(val):
         try:
@@ -68,6 +71,7 @@ def home():
         "sea_view": filters.get("sea_view", False),
         "parking": filters.get("parking", False),
         "furnished": filters.get("furnished", False),
+        "allow_pets": filters.get("allow_pets", False),
         "min_price": request.args.get("min_price", "") or "",
         "max_price": request.args.get("max_price", "") or "",
         "min_rooms": request.args.get("min_rooms", "") or "",
@@ -86,6 +90,7 @@ def department_detail(department_id: str):
     """Detalle de un departamento"""
     deps = get_services()
     department_service = deps.get('department_service')
+    payment_service = deps.get('payment_service')
     
     if department_service:
         department = department_service.get_department_by_id(department_id)
@@ -97,15 +102,23 @@ def department_detail(department_id: str):
         flash("Error al cargar el departamento", "error")
         return redirect(url_for("visitor.home"))
     
-    # Verificar si el usuario está autenticado
+    # Verificar si el usuario está autenticado y si ya tiene un pago para este depto
     is_authenticated = 'user_id' in session
     user_id = session.get('user_id') if is_authenticated else None
+    existing_payment_status = None
+    if is_authenticated and payment_service:
+        payments = payment_service.get_payments_by_tenant(user_id)
+        for p in payments:
+            if p.department_id == department_id:
+                existing_payment_status = p.status.value
+                break
     
     return render_template(
         "visitor/department_detail.html",
         department=department,
         is_authenticated=is_authenticated,
-        user_id=user_id
+        user_id=user_id,
+        existing_payment_status=existing_payment_status
     )
 
 
@@ -129,10 +142,26 @@ def pay_department(department_id: str):
         flash("Departamento no encontrado", "error")
         return redirect(url_for("visitor.home"))
     
+    def _month_key(d: date) -> int:
+        return d.year * 12 + d.month
+
+    def _is_month_allowed(month_str: str) -> bool:
+        try:
+            m_date = datetime.strptime(month_str, "%Y-%m").date()
+            today = date.today()
+            max_key = _month_key(today)
+            min_key = max_key - 2  # hasta dos meses atrás
+            return min_key <= _month_key(m_date) <= max_key
+        except Exception:
+            return False
+
     if request.method == "POST":
         amount = request.form.get("amount")
         month = request.form.get("month")
         notes = request.form.get("notes", "")
+        start_date_str = request.form.get("start_date")
+        end_date_str = request.form.get("end_date")
+        expected_amount = float(department.price)
         
         if 'receipt' not in request.files:
             flash("Debes subir un comprobante de pago", "error")
@@ -144,6 +173,13 @@ def pay_department(department_id: str):
             return render_template("visitor/pay_department.html", department=department)
         
         try:
+            # Validar monto numérico
+            try:
+                amount_val = float(amount)
+            except Exception:
+                flash("Monto inválido", "error")
+                return render_template("visitor/pay_department.html", department=department)
+
             file_content = file.read()
             if len(file_content) == 0:
                 flash("El archivo está vacío", "error")
@@ -154,12 +190,47 @@ def pay_department(department_id: str):
             if len(file_content) > max_size:
                 flash("El archivo es demasiado grande. Máximo 10MB", "error")
                 return render_template("visitor/pay_department.html", department=department)
+
+            # Calcular monto prorrateado si se ingresa rango de fechas
+            if start_date_str or end_date_str:
+                if not start_date_str or not end_date_str:
+                    flash("Debes elegir fecha de inicio y fin para la reserva", "error")
+                    return render_template("visitor/pay_department.html", department=department)
+                try:
+                    start_dt = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+                    end_dt = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+                    if end_dt < start_dt:
+                        raise ValueError("La fecha fin no puede ser menor que la fecha inicio")
+                    delta_days = (end_dt - start_dt).days + 1
+                    if delta_days < 1 or delta_days > 30:
+                        raise ValueError("El rango de reserva debe ser entre 1 y 30 días")
+                    daily_rate = float(department.price) / 30
+                    expected_amount = round(daily_rate * delta_days, 2)
+                    amount_val = expected_amount  # ajustamos al prorrateo
+                    extra_note = f"[Reserva {start_dt.strftime('%d/%m')} - {end_dt.strftime('%d/%m')} ({delta_days} días)]"
+                    notes = f"{extra_note} {notes}".strip()
+                except ValueError as e:
+                    flash(str(e), "error")
+                    return render_template("visitor/pay_department.html", department=department)
+            else:
+                # Sin fechas, el mínimo requerido es el precio mensual completo
+                expected_amount = float(department.price)
+
+            # Validar que el monto no sea menor al requerido
+            if amount_val < expected_amount:
+                flash(f"El monto no puede ser menor a ${expected_amount:.2f}", "error")
+                return render_template("visitor/pay_department.html", department=department)
+
+            # Validar mes de pago (solo mes actual o hasta 2 meses atrás)
+            if not month or not _is_month_allowed(month):
+                flash("El mes de pago debe ser el mes actual o hasta dos meses atrás", "error")
+                return render_template("visitor/pay_department.html", department=department)
             
             # Crear pago con comprobante
             payment = payment_service.create_payment_with_receipt(
                 tenant_id=user_id,
                 department_id=department_id,
-                amount=float(amount),
+                amount=amount_val,
                 month=month,
                 file_content=file_content,
                 file_name=file.filename,

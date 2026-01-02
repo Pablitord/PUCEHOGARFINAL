@@ -52,6 +52,7 @@ def payments_list():
     """Lista de todos los pagos"""
     deps = get_services()
     payment_service = deps.get('payment_service')
+    department_service = deps.get('department_service')
     
     status_filter = request.args.get('status')
     payments = []
@@ -66,8 +67,15 @@ def payments_list():
         else:
             # Obtener todos los pagos pendientes por defecto
             payments = payment_service.get_pending_payments()
+
+    # Mapear departamentos para mostrar en tabla
+    departments_map = {}
+    if department_service and payments:
+        for p in payments:
+            if p.department_id not in departments_map:
+                departments_map[p.department_id] = department_service.get_department_by_id(p.department_id)
     
-    return render_template("admin/payments.html", payments=payments)
+    return render_template("admin/payments.html", payments=payments, departments_map=departments_map)
 
 
 @admin_bp.route("/payment/<payment_id>")
@@ -218,6 +226,37 @@ def new_department():
     
     if request.method == "POST":
         try:
+            has_terrace = bool(request.form.get("has_terrace"))
+            has_balcony = bool(request.form.get("has_balcony"))
+            sea_view = bool(request.form.get("sea_view"))
+            parking = bool(request.form.get("parking"))
+            furnished = bool(request.form.get("furnished"))
+            allow_pets = bool(request.form.get("allow_pets"))
+            image_url_2 = request.form.get("image_url_2", "").strip() or None
+            image_url_3 = request.form.get("image_url_3", "").strip() or None
+
+            def build_department(image_url_val=None):
+                return Department(
+                    id="",
+                    title=request.form.get("title", "").strip(),
+                    address=request.form.get("address", "").strip(),
+                    price=float(request.form.get("price", 0)),
+                    status=DepartmentStatus(request.form.get("status", DepartmentStatus.AVAILABLE.value)),
+                    description=request.form.get("description", "").strip() or None,
+                    rooms=int(request.form.get("rooms", 0)) if request.form.get("rooms") else None,
+                    bathrooms=int(request.form.get("bathrooms", 0)) if request.form.get("bathrooms") else None,
+                    area=float(request.form.get("area", 0)) if request.form.get("area") else None,
+                    image_url=image_url_val,
+                    image_url_2=image_url_2,
+                    image_url_3=image_url_3,
+                    has_terrace=has_terrace,
+                    has_balcony=has_balcony,
+                    sea_view=sea_view,
+                    parking=parking,
+                    furnished=furnished,
+                    allow_pets=allow_pets
+                )
+
             image_url = None
             
             # Si se subió una imagen
@@ -233,18 +272,7 @@ def new_department():
                             return render_template("admin/new_department.html")
                         
                         # Crear departamento primero (sin imagen)
-                        department = Department(
-                            id="",
-                            title=request.form.get("title", "").strip(),
-                            address=request.form.get("address", "").strip(),
-                            price=float(request.form.get("price", 0)),
-                            status=DepartmentStatus(request.form.get("status", DepartmentStatus.AVAILABLE.value)),
-                            description=request.form.get("description", "").strip() or None,
-                            rooms=int(request.form.get("rooms", 0)) if request.form.get("rooms") else None,
-                            bathrooms=int(request.form.get("bathrooms", 0)) if request.form.get("bathrooms") else None,
-                            area=float(request.form.get("area", 0)) if request.form.get("area") else None,
-                            image_url=None
-                        )
+                        department = build_department()
                         
                         department = department_service.create_department(department)
                         
@@ -260,50 +288,17 @@ def new_department():
                     else:
                         # Usar URL si se proporcionó
                         image_url = request.form.get("image_url", "").strip() or None
-                        department = Department(
-                            id="",
-                            title=request.form.get("title", "").strip(),
-                            address=request.form.get("address", "").strip(),
-                            price=float(request.form.get("price", 0)),
-                            status=DepartmentStatus(request.form.get("status", DepartmentStatus.AVAILABLE.value)),
-                            description=request.form.get("description", "").strip() or None,
-                            rooms=int(request.form.get("rooms", 0)) if request.form.get("rooms") else None,
-                            bathrooms=int(request.form.get("bathrooms", 0)) if request.form.get("bathrooms") else None,
-                            area=float(request.form.get("area", 0)) if request.form.get("area") else None,
-                            image_url=image_url
-                        )
+                        department = build_department(image_url)
                         department = department_service.create_department(department)
                 else:
                     # Usar URL si se proporcionó
                     image_url = request.form.get("image_url", "").strip() or None
-                    department = Department(
-                        id="",
-                        title=request.form.get("title", "").strip(),
-                        address=request.form.get("address", "").strip(),
-                        price=float(request.form.get("price", 0)),
-                        status=DepartmentStatus(request.form.get("status", DepartmentStatus.AVAILABLE.value)),
-                        description=request.form.get("description", "").strip() or None,
-                        rooms=int(request.form.get("rooms", 0)) if request.form.get("rooms") else None,
-                        bathrooms=int(request.form.get("bathrooms", 0)) if request.form.get("bathrooms") else None,
-                        area=float(request.form.get("area", 0)) if request.form.get("area") else None,
-                        image_url=image_url
-                    )
+                    department = build_department(image_url)
                     department = department_service.create_department(department)
             else:
                 # Usar URL si se proporcionó
                 image_url = request.form.get("image_url", "").strip() or None
-                department = Department(
-                    id="",
-                    title=request.form.get("title", "").strip(),
-                    address=request.form.get("address", "").strip(),
-                    price=float(request.form.get("price", 0)),
-                    status=DepartmentStatus(request.form.get("status", DepartmentStatus.AVAILABLE.value)),
-                    description=request.form.get("description", "").strip() or None,
-                    rooms=int(request.form.get("rooms", 0)) if request.form.get("rooms") else None,
-                    bathrooms=int(request.form.get("bathrooms", 0)) if request.form.get("bathrooms") else None,
-                    area=float(request.form.get("area", 0)) if request.form.get("area") else None,
-                    image_url=image_url
-                )
+                department = build_department(image_url)
                 department = department_service.create_department(department)
             
             flash("Departamento creado correctamente", "success")
@@ -339,6 +334,14 @@ def edit_department(department_id: str):
             department.rooms = int(request.form.get("rooms", 0)) if request.form.get("rooms") else None
             department.bathrooms = int(request.form.get("bathrooms", 0)) if request.form.get("bathrooms") else None
             department.area = float(request.form.get("area", 0)) if request.form.get("area") else None
+            department.has_terrace = bool(request.form.get("has_terrace"))
+            department.has_balcony = bool(request.form.get("has_balcony"))
+            department.sea_view = bool(request.form.get("sea_view"))
+            department.parking = bool(request.form.get("parking"))
+            department.furnished = bool(request.form.get("furnished"))
+            department.allow_pets = bool(request.form.get("allow_pets"))
+            department.image_url_2 = request.form.get("image_url_2", "").strip() or None
+            department.image_url_3 = request.form.get("image_url_3", "").strip() or None
             
             # Manejar imagen
             if 'image' in request.files:

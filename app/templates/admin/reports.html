@@ -35,7 +35,15 @@
                     {{ report.status.value|title }}
                   </span>
                 </td>
-                <td>{{ report.created_at.strftime('%d/%m/%Y') if report.created_at else 'N/A' }}</td>
+                <td>
+                  {% if report.created_at and report.created_at.strftime is defined %}
+                    {{ report.created_at.strftime('%d/%m/%Y') }}
+                  {% elif report.created_at %}
+                    {{ report.created_at }}
+                  {% else %}
+                    N/A
+                  {% endif %}
+                </td>
                 <td>
                   {% if report.status.value == 'open' or report.status.value == 'in_progress' %}
                     <form method="POST" action="{{ url_for('admin.resolve_report', report_id=report.id) }}" class="d-inline">

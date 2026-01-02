@@ -54,6 +54,14 @@
                   </div>
                 {% endif %}
               </div>
+              <div class="col-md-6 mb-3">
+                <label for="image_url_2" class="form-label">URL de Imagen 2 (opcional)</label>
+                <input type="url" class="form-control" id="image_url_2" name="image_url_2" value="{{ department.image_url_2 or '' }}" placeholder="https://...">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="image_url_3" class="form-label">URL de Imagen 3 (opcional)</label>
+                <input type="url" class="form-control" id="image_url_3" name="image_url_3" value="{{ department.image_url_3 or '' }}" placeholder="https://...">
+              </div>
             </div>
 
             <div class="row">
@@ -68,6 +76,40 @@
               <div class="col-md-4 mb-3">
                 <label for="area" class="form-label">Área (m²)</label>
                 <input type="number" step="0.01" min="0" class="form-control" id="area" name="area" value="{{ department.area or '' }}">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-bold">Características</label>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="has_terrace" name="has_terrace" {% if department.has_terrace %}checked{% endif %}>
+                    <label class="form-check-label" for="has_terrace">Terraza</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="has_balcony" name="has_balcony" {% if department.has_balcony %}checked{% endif %}>
+                    <label class="form-check-label" for="has_balcony">Balcón</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="sea_view" name="sea_view" {% if department.sea_view %}checked{% endif %}>
+                    <label class="form-check-label" for="sea_view">Vista al mar</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="parking" name="parking" {% if department.parking %}checked{% endif %}>
+                    <label class="form-check-label" for="parking">Parqueadero</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="furnished" name="furnished" {% if department.furnished %}checked{% endif %}>
+                    <label class="form-check-label" for="furnished">Amoblado</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="allow_pets" name="allow_pets" {% if department.allow_pets %}checked{% endif %}>
+                    <label class="form-check-label" for="allow_pets">Permite mascotas</label>
+                  </div>
+                </div>
               </div>
             </div>
 

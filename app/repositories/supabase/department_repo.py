@@ -28,11 +28,14 @@ class SupabaseDepartmentRepository:
             bathrooms=row.get("bathrooms"),
             area=float(row["area"]) if row.get("area") else None,
             image_url=row.get("image_url"),
+            image_url_2=row.get("image_url_2"),
+            image_url_3=row.get("image_url_3"),
             has_terrace=row.get("has_terrace", False) or False,
             has_balcony=row.get("has_balcony", False) or False,
             sea_view=row.get("sea_view", False) or False,
             parking=row.get("parking", False) or False,
             furnished=row.get("furnished", False) or False,
+            allow_pets=row.get("allow_pets", False) or False,
             created_at=row.get("created_at"),
             updated_at=row.get("updated_at")
         )
@@ -78,6 +81,8 @@ class SupabaseDepartmentRepository:
                     query = query.gte("rooms", filters["min_rooms"])
                 if filters.get("max_rooms") is not None:
                     query = query.lte("rooms", filters["max_rooms"])
+                if filters.get("allow_pets") is True:
+                    query = query.eq("allow_pets", True)
 
             result = query.order("created_at", desc=True).execute()
             return [self._row_to_entity(row) for row in result.data]
@@ -96,11 +101,14 @@ class SupabaseDepartmentRepository:
             "bathrooms": department.bathrooms,
             "area": department.area,
             "image_url": department.image_url,
+            "image_url_2": department.image_url_2,
+            "image_url_3": department.image_url_3,
             "has_terrace": department.has_terrace,
             "has_balcony": department.has_balcony,
             "sea_view": department.sea_view,
             "parking": department.parking,
-            "furnished": department.furnished
+            "furnished": department.furnished,
+            "allow_pets": department.allow_pets
         }
         result = self.client.table(self.table).insert(data).execute()
         return self._row_to_entity(result.data[0])
@@ -117,11 +125,14 @@ class SupabaseDepartmentRepository:
             "bathrooms": department.bathrooms,
             "area": department.area,
             "image_url": department.image_url,
+            "image_url_2": department.image_url_2,
+            "image_url_3": department.image_url_3,
             "has_terrace": department.has_terrace,
             "has_balcony": department.has_balcony,
             "sea_view": department.sea_view,
             "parking": department.parking,
             "furnished": department.furnished,
+            "allow_pets": department.allow_pets,
             "updated_at": datetime.utcnow().isoformat()
         }
         result = self.client.table(self.table).update(data).eq("id", department.id).execute()
