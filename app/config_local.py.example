@@ -1,0 +1,29 @@
+"""
+Archivo de ejemplo para configuración local.
+
+Copia este archivo como config_local.py y completa con tus valores.
+NO subas config_local.py al repositorio (debe estar en .gitignore)
+"""
+
+import os
+
+
+class Config:
+    """Configuración local (sobrescribe config.py)"""
+    
+    # Flask
+    SECRET_KEY: str = "cambia-esta-clave-en-produccion"
+    
+    # Supabase
+    SUPABASE_URL: str = "https://tu-proyecto.supabase.co"
+    SUPABASE_KEY: str = "tu-anon-key-aqui"
+    # Service Role Key (recomendado para Storage - bypasea RLS)
+    # Obténla en: Supabase → Settings → API → service_role key
+    SUPABASE_SERVICE_ROLE_KEY: str = "tu-service-role-key-aqui"
+    
+    # Storage
+    STORAGE_BUCKET: str = "comprobantes"
+    
+    # Debug
+    DEBUG: bool = True
+

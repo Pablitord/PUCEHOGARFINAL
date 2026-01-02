@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Gestión de Departamentos - PUCEHOGAR{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2><i class="bi bi-building"></i> Gestión de Departamentos</h2>
+  <div>
+    <a href="{{ url_for('admin.new_department') }}" class="btn btn-primary">
+      <i class="bi bi-plus-circle"></i> Nuevo Departamento
+    </a>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Volver
+    </a>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    {% if departments %}
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Dirección</th>
+              <th>Precio</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for dept in departments %}
+              <tr>
+                <td>{{ dept.title }}</td>
+                <td>{{ dept.address }}</td>
+                <td>${{ "%.2f"|format(dept.price) }}</td>
+                <td>
+                  <span class="badge bg-{{ 'success' if dept.status.value == 'available' else 'warning' if dept.status.value == 'maintenance' else 'secondary' }}">
+                    {{ dept.status.value|title }}
+                  </span>
+                </td>
+                <td>
+                  <a href="{{ url_for('admin.edit_department', department_id=dept.id) }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-pencil"></i> Editar
+                  </a>
+                  <form method="POST" action="{{ url_for('admin.delete_department', department_id=dept.id) }}" class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar este departamento?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                      <i class="bi bi-trash"></i> Eliminar
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> No hay departamentos registrados.
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+

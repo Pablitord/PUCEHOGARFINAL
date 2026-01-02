@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Nuevo Pago - PUCEHOGAR{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="bi bi-credit-card"></i> Registrar Nuevo Pago</h5>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('tenant.new_payment') }}" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label for="amount" class="form-label">Monto *</label>
+            <input 
+              type="number" 
+              step="0.01" 
+              min="0.01" 
+              class="form-control" 
+              id="amount" 
+              name="amount" 
+              required
+            >
+          </div>
+
+          <div class="mb-3">
+            <label for="month" class="form-label">Mes *</label>
+            <input 
+              type="month" 
+              class="form-control" 
+              id="month" 
+              name="month" 
+              required
+            >
+            <small class="form-text text-muted">Formato: YYYY-MM (ej: 2024-01)</small>
+          </div>
+
+          <div class="mb-3">
+            <label for="notes" class="form-label">Notas (opcional)</label>
+            <textarea 
+              class="form-control" 
+              id="notes" 
+              name="notes" 
+              rows="3"
+            ></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label for="receipt" class="form-label">Comprobante de pago *</label>
+            <input
+              type="file"
+              class="form-control"
+              id="receipt"
+              name="receipt"
+              accept="image/*,.pdf"
+              required
+            >
+            <small class="form-text text-muted">Obligatorio. Máx 10MB.</small>
+          </div>
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-circle"></i> Registrar Pago
+            </button>
+            <a href="{{ url_for('tenant.dashboard') }}" class="btn btn-outline-secondary">
+              <i class="bi bi-x-circle"></i> Cancelar
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

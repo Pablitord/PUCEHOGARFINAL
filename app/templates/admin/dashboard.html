@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Panel Administrador - PUCEHOGAR{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2><i class="bi bi-speedometer2"></i> Panel Administrador</h2>
+  <div>
+    <a href="{{ url_for('admin.departments_list') }}" class="btn btn-primary">
+      <i class="bi bi-building"></i> Departamentos
+    </a>
+    <a href="{{ url_for('admin.payments_list') }}" class="btn btn-success">
+      <i class="bi bi-credit-card"></i> Pagos
+    </a>
+    <a href="{{ url_for('admin.reports_list') }}" class="btn btn-warning">
+      <i class="bi bi-exclamation-triangle"></i> Reportes
+    </a>
+    <a href="{{ url_for('admin.create_admin') }}" class="btn btn-outline-danger">
+      <i class="bi bi-shield-lock"></i> Crear Admin
+    </a>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Pagos Pendientes -->
+  <div class="col-md-6">
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0">
+          <i class="bi bi-credit-card"></i> Pagos Pendientes
+          <span class="badge bg-dark">{{ pending_payments|length }}</span>
+        </h5>
+      </div>
+      <div class="card-body">
+        {% if pending_payments %}
+          <div class="list-group">
+            {% for payment in pending_payments[:5] %}
+              <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                  <div>
+                    <h6 class="mb-1">${{ "%.2f"|format(payment.amount) }}</h6>
+                    <p class="mb-1 text-muted">{{ payment.month }}</p>
+                  </div>
+                  <div>
+                    <a href="{{ url_for('admin.payments_list') }}" class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-eye"></i> Ver
+                    </a>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          {% if pending_payments|length > 5 %}
+            <div class="text-center mt-3">
+              <a href="{{ url_for('admin.payments_list') }}" class="btn btn-sm btn-outline-primary">
+                Ver todos ({{ pending_payments|length }})
+              </a>
+            </div>
+          {% endif %}
+        {% else %}
+          <p class="text-muted text-center">No hay pagos pendientes.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Reportes Abiertos -->
+  <div class="col-md-6">
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-danger text-white">
+        <h5 class="mb-0">
+          <i class="bi bi-exclamation-triangle"></i> Reportes Abiertos
+          <span class="badge bg-light text-dark">{{ open_reports|length }}</span>
+        </h5>
+      </div>
+      <div class="card-body">
+        {% if open_reports %}
+          <div class="list-group">
+            {% for report in open_reports[:5] %}
+              <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                  <div>
+                    <h6 class="mb-1">{{ report.title }}</h6>
+                    <p class="mb-1 text-muted">{{ report.description[:50] }}...</p>
+                  </div>
+                  <div>
+                    <a href="{{ url_for('admin.reports_list') }}" class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-eye"></i> Ver
+                    </a>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          {% if open_reports|length > 5 %}
+            <div class="text-center mt-3">
+              <a href="{{ url_for('admin.reports_list') }}" class="btn btn-sm btn-outline-primary">
+                Ver todos ({{ open_reports|length }})
+              </a>
+            </div>
+          {% endif %}
+        {% else %}
+          <p class="text-muted text-center">No hay reportes abiertos.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

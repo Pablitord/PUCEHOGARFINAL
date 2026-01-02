@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Gestión de Reportes - PUCEHOGAR{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2><i class="bi bi-exclamation-triangle"></i> Gestión de Reportes</h2>
+  <div>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Volver
+    </a>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    {% if reports %}
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Descripción</th>
+              <th>Estado</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for report in reports %}
+              <tr>
+                <td>{{ report.title }}</td>
+                <td>{{ report.description[:100] }}{% if report.description|length > 100 %}...{% endif %}</td>
+                <td>
+                  <span class="badge bg-{{ 'primary' if report.status.value == 'open' else 'info' if report.status.value == 'in_progress' else 'success' if report.status.value == 'resolved' else 'secondary' }}">
+                    {{ report.status.value|title }}
+                  </span>
+                </td>
+                <td>{{ report.created_at.strftime('%d/%m/%Y') if report.created_at else 'N/A' }}</td>
+                <td>
+                  {% if report.status.value == 'open' or report.status.value == 'in_progress' %}
+                    <form method="POST" action="{{ url_for('admin.resolve_report', report_id=report.id) }}" class="d-inline">
+                      <button type="submit" class="btn btn-sm btn-success">
+                        <i class="bi bi-check-circle"></i> Resolver
+                      </button>
+                    </form>
+                  {% else %}
+                    <span class="text-muted">Resuelto</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> No hay reportes para mostrar.
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+

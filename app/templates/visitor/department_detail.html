@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}{{ department.title if department else 'Departamento' }} - PUCEHOGAR{% endblock %}
+
+{% block content %}
+{% if department %}
+  <div class="row">
+    <div class="col-md-8">
+      {% if department.image_url %}
+        <img src="{{ department.image_url }}" class="img-fluid rounded mb-3 shadow" alt="{{ department.title }}" style="max-height: 500px; object-fit: cover; width: 100%;">
+      {% else %}
+        <div class="bg-gradient rounded d-flex align-items-center justify-content-center mb-3 shadow" style="height: 400px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+          <div class="text-center text-white">
+            <i class="bi bi-building" style="font-size: 6rem; opacity: 0.7;"></i>
+            <p class="mt-3 mb-0" style="font-size: 1.2rem; opacity: 0.9;">{{ department.title }}</p>
+          </div>
+        </div>
+      {% endif %}
+      
+      <h2>{{ department.title }}</h2>
+      <p class="text-muted">
+        <i class="bi bi-geo-alt"></i> {{ department.address }}
+      </p>
+      
+      {% if department.description %}
+        <div class="mt-4">
+          <h4>Descripción</h4>
+          <p>{{ department.description }}</p>
+        </div>
+      {% endif %}
+      
+      <div class="row mt-4">
+        {% if department.rooms %}
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-body text-center">
+                <i class="bi bi-door-open" style="font-size: 2rem;"></i>
+                <h5>{{ department.rooms }}</h5>
+                <p class="text-muted mb-0">Habitaciones</p>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+        {% if department.bathrooms %}
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-body text-center">
+                <i class="bi bi-droplet" style="font-size: 2rem;"></i>
+                <h5>{{ department.bathrooms }}</h5>
+                <p class="text-muted mb-0">Baños</p>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+        {% if department.area %}
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-body text-center">
+                <i class="bi bi-rulers" style="font-size: 2rem;"></i>
+                <h5>{{ department.area }} m²</h5>
+                <p class="text-muted mb-0">Área</p>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+
+      {% if department.has_terrace or department.has_balcony or department.sea_view or department.parking or department.furnished %}
+        <div class="mt-4">
+          <h4>Características Especiales</h4>
+          <div class="d-flex flex-wrap gap-2">
+            {% if department.has_terrace %}<span class="badge bg-info fs-6 p-2"><i class="bi bi-house-door"></i> Con Terraza</span>{% endif %}
+            {% if department.has_balcony %}<span class="badge bg-info fs-6 p-2"><i class="bi bi-door-open"></i> Con Balcón</span>{% endif %}
+            {% if department.sea_view %}<span class="badge bg-primary fs-6 p-2"><i class="bi bi-water"></i> Vista al Mar</span>{% endif %}
+            {% if department.parking %}<span class="badge bg-success fs-6 p-2"><i class="bi bi-car-front"></i> Estacionamiento</span>{% endif %}
+            {% if department.furnished %}<span class="badge bg-warning text-dark fs-6 p-2"><i class="bi bi-lamp"></i> Amueblado</span>{% endif %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+      <div class="card shadow">
+        <div class="card-body">
+          <h3 class="text-primary mb-3">${{ "%.2f"|format(department.price) }}</h3>
+          <p class="text-muted">Precio mensual</p>
+          
+          <div class="mb-3">
+            <span class="badge bg-{{ 'success' if department.status.value == 'available' else 'warning' if department.status.value == 'maintenance' else 'secondary' }}">
+              {{ department.status.value|title }}
+            </span>
+          </div>
+          
+          {% if department.status.value == 'available' %}
+            {% if is_authenticated %}
+              <a href="{{ url_for('visitor.pay_department', department_id=department.id) }}" class="btn btn-success w-100 mb-2">
+                <i class="bi bi-credit-card"></i> Realizar Pago
+              </a>
+            {% else %}
+              <div class="alert alert-info mb-3">
+                <small><i class="bi bi-info-circle"></i> Inicia sesión o regístrate para realizar un pago</small>
+              </div>
+              <a href="{{ url_for('auth.login', next=url_for('visitor.pay_department', department_id=department.id)) }}" class="btn btn-primary w-100 mb-2">
+                <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+              </a>
+              <a href="{{ url_for('auth.register', next=url_for('visitor.pay_department', department_id=department.id)) }}" class="btn btn-outline-primary w-100 mb-2">
+                <i class="bi bi-person-plus"></i> Registrarse
+              </a>
+            {% endif %}
+          {% endif %}
+          
+          <a href="{{ url_for('visitor.home') }}" class="btn btn-outline-secondary w-100">
+            <i class="bi bi-arrow-left"></i> Volver
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="alert alert-danger">
+    <i class="bi bi-exclamation-triangle"></i> Departamento no encontrado.
+  </div>
+  <a href="{{ url_for('visitor.home') }}" class="btn btn-primary">
+    <i class="bi bi-arrow-left"></i> Volver al catálogo
+  </a>
+{% endif %}
+{% endblock %}

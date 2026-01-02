@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Panel del Inquilino - PUCEHOGAR{% endblock %}
+
+{% block content %}
+{% if user %}
+  <div class="alert alert-primary mb-4">
+    <h4 class="alert-heading mb-2"><i class="bi bi-person-circle"></i> Bienvenido{% if user.full_name %}, {{ user.full_name }}{% endif %}</h4>
+    <p class="mb-0">Gestiona tus pagos y reportes desde aquí.</p>
+  </div>
+{% endif %}
+
+{% if department %}
+  <div class="card shadow-sm mb-4 border-success">
+    <div class="card-header bg-success text-white">
+      <h5 class="mb-0"><i class="bi bi-building"></i> Mi Departamento</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-8">
+          <h5>{{ department.title }}</h5>
+          <p class="text-muted mb-2"><i class="bi bi-geo-alt"></i> {{ department.address }}</p>
+          {% if department.rooms or department.bathrooms or department.area %}
+            <p class="mb-2">
+              {% if department.rooms %}<i class="bi bi-door-open"></i> {{ department.rooms }} hab.{% endif %}
+              {% if department.bathrooms %} | <i class="bi bi-droplet"></i> {{ department.bathrooms }} baños{% endif %}
+              {% if department.area %} | <i class="bi bi-rulers"></i> {{ department.area }} m²{% endif %}
+            </p>
+          {% endif %}
+          <p class="mb-0"><strong>Precio mensual:</strong> <span class="h5 text-success">${{ "%.2f"|format(department.price) }}</span></p>
+        </div>
+        <div class="col-md-4 text-end">
+          <a href="{{ url_for('visitor.department_detail', department_id=department.id) }}" class="btn btn-outline-primary">
+            <i class="bi bi-eye"></i> Ver Detalle
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="alert alert-info mb-4">
+    <i class="bi bi-info-circle"></i> Aún no tienes un departamento asignado. Realiza un pago y espera la aprobación.
+    <div class="mt-2">
+      <a href="{{ url_for('visitor.home') }}" class="btn btn-sm btn-primary">
+        <i class="bi bi-building"></i> Ver Departamentos
+      </a>
+    </div>
+  </div>
+{% endif %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2><i class="bi bi-speedometer2"></i> Mi Panel</h2>
+  <div>
+    <a href="{{ url_for('visitor.home') }}" class="btn btn-outline-primary"><i class="bi bi-building"></i> Ver Departamentos</a>
+    <a href="{{ url_for('tenant.new_payment') }}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Nuevo Pago</a>
+    <a href="{{ url_for('tenant.new_report') }}" class="btn btn-outline-primary"><i class="bi bi-exclamation-triangle"></i> Nuevo Reporte</a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="bi bi-credit-card"></i> Mis Pagos</h5>
+      </div>
+      <div class="card-body">
+        {% if payments %}
+          <div class="list-group">
+            {% for payment in payments %}
+              <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between align-items-start">
+                  <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <h6 class="mb-0"><i class="bi bi-calendar"></i> {{ payment.month }}</h6>
+                      <span class="badge bg-{{ 'warning' if payment.status.value == 'pending' else 'success' if payment.status.value == 'approved' else 'danger' }}">{{ payment.status.value|title }}</span>
+                    </div>
+                    <p class="mb-1"><strong>Monto:</strong> ${{ "%.2f"|format(payment.amount) }}</p>
+                    <small class="text-muted">
+                      <i class="bi bi-clock"></i>
+                      {% if payment.created_at and payment.created_at.strftime is defined %}
+                        {{ payment.created_at.strftime('%d/%m/%Y %H:%M') }}
+                      {% elif payment.created_at %}
+                        {{ payment.created_at }}
+                      {% else %}
+                        N/A
+                      {% endif %}
+                    </small>
+                    {% if not payment.receipt_url %}
+                      <div class="mt-2"><span class="badge bg-danger"><i class="bi bi-exclamation-triangle"></i> Falta comprobante</span></div>
+                    {% endif %}
+                  </div>
+                  <div class="ms-3">
+                    {% if not payment.receipt_url %}
+                      <a href="{{ url_for('tenant.upload_receipt', payment_id=payment.id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-upload"></i> Subir</a>
+                    {% else %}
+                      <a href="{{ payment.receipt_url }}" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-eye"></i> Ver</a>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted text-center mb-0">No tienes pagos registrados.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Mis Reportes</h5>
+      </div>
+      <div class="card-body">
+        {% if reports %}
+          <div class="list-group">
+            {% for report in reports %}
+              <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between align-items-start">
+                  <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <h6 class="mb-0">{{ report.title }}</h6>
+                      <span class="badge bg-{{ 'primary' if report.status.value == 'open' else 'info' if report.status.value == 'in_progress' else 'success' if report.status.value == 'resolved' else 'secondary' }}">{{ report.status.value|title }}</span>
+                    </div>
+                    <p class="mb-1 text-muted small">{{ report.description[:100] }}{% if report.description|length > 100 %}...{% endif %}</p>
+                    <small class="text-muted">
+                      <i class="bi bi-calendar"></i>
+                      {% if report.created_at and report.created_at.strftime is defined %}
+                        {{ report.created_at.strftime('%d/%m/%Y %H:%M') }}
+                      {% elif report.created_at %}
+                        {{ report.created_at }}
+                      {% else %}
+                        N/A
+                      {% endif %}
+                    </small>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted text-center mb-0">No tienes reportes registrados.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

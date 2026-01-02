@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Subir Comprobante - PUCEHOGAR{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow">
+      <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="bi bi-upload"></i> Subir Comprobante de Pago</h5>
+      </div>
+      <div class="card-body">
+        {% if payment %}
+          <div class="alert alert-info">
+            <strong>Pago:</strong> {{ payment.month }} - ${{ "%.2f"|format(payment.amount) }}
+          </div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('tenant.upload_receipt', payment_id=payment.id) }}" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label for="receipt" class="form-label">Comprobante *</label>
+            <input 
+              type="file" 
+              class="form-control" 
+              id="receipt" 
+              name="receipt" 
+              accept="image/*,.pdf"
+              required
+            >
+            <small class="form-text text-muted">Formatos aceptados: JPG, PNG, PDF</small>
+          </div>
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-upload"></i> Subir Comprobante
+            </button>
+            <a href="{{ url_for('tenant.dashboard') }}" class="btn btn-outline-secondary">
+              <i class="bi bi-x-circle"></i> Cancelar
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Registro - PUCEHOGAR{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card shadow">
+      <div class="card-body p-5">
+        <div class="text-center mb-4">
+          <i class="bi bi-person-plus text-primary" style="font-size: 3rem;"></i>
+          <h3 class="mt-3">Crear Cuenta</h3>
+          <p class="text-muted">Regístrate para gestionar tus pagos</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('auth.register') }}">
+          <input type="hidden" name="next" value="{{ next_url }}">
+          
+          <div class="mb-3">
+            <label for="full_name" class="form-label">
+              <i class="bi bi-person"></i> Nombre completo (opcional)
+            </label>
+            <input 
+              type="text" 
+              class="form-control" 
+              id="full_name" 
+              name="full_name"
+            >
+          </div>
+
+          <div class="mb-3">
+            <label for="email" class="form-label">
+              <i class="bi bi-envelope"></i> Correo electrónico *
+            </label>
+            <input 
+              type="email" 
+              class="form-control" 
+              id="email" 
+              name="email" 
+              required
+              autofocus
+            >
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label">
+              <i class="bi bi-lock"></i> Contraseña *
+            </label>
+            <input 
+              type="password" 
+              class="form-control" 
+              id="password" 
+              name="password" 
+              required
+              minlength="6"
+            >
+            <small class="form-text text-muted">Mínimo 6 caracteres</small>
+          </div>
+
+          <div class="mb-3">
+            <label for="password_confirm" class="form-label">
+              <i class="bi bi-lock-fill"></i> Confirmar contraseña *
+            </label>
+            <input 
+              type="password" 
+              class="form-control" 
+              id="password_confirm" 
+              name="password_confirm" 
+              required
+              minlength="6"
+            >
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 mb-3">
+            <i class="bi bi-person-plus"></i> Registrarse
+          </button>
+        </form>
+
+        <div class="text-center">
+          <p class="text-muted">¿Ya tienes cuenta? 
+            <a href="{{ url_for('auth.login', next=next_url) }}" class="text-decoration-none">
+              Inicia sesión
+            </a>
+          </p>
+          <a href="{{ url_for('visitor.home') }}" class="text-muted text-decoration-none">
+            <i class="bi bi-arrow-left"></i> Volver al inicio
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
