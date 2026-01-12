@@ -13,6 +13,7 @@ class User:
     role: UserRole
     full_name: Optional[str] = None
     department_id: Optional[str] = None
+    password_hash: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

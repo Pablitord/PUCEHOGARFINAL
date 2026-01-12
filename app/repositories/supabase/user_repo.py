@@ -23,6 +23,7 @@ class SupabaseUserRepository:
             role=UserRole(row["role"]),
             full_name=row.get("full_name"),
             department_id=row.get("department_id"),
+            password_hash=row.get("password_hash"),
             created_at=row.get("created_at"),
             updated_at=row.get("updated_at")
         )
@@ -53,7 +54,8 @@ class SupabaseUserRepository:
             "email": user.email,
             "role": user.role.value,
             "full_name": user.full_name,
-            "department_id": user.department_id
+            "department_id": user.department_id,
+            "password_hash": user.password_hash
         }
         result = self.client.table(self.table).insert(data).execute()
         return self._row_to_entity(result.data[0])
@@ -65,11 +67,32 @@ class SupabaseUserRepository:
             "role": user.role.value,
             "full_name": user.full_name,
             "department_id": user.department_id,
+            "password_hash": user.password_hash,
             "updated_at": datetime.utcnow().isoformat()
         }
         result = self.client.table(self.table).update(data).eq("id", user.id).execute()
         return self._row_to_entity(result.data[0])
     
+    def has_admins(self) -> bool:
+        """Retorna True si existe al menos un admin"""
+        try:
+            result = (
+                self.client.table(self.table)
+                .select("id", count="exact")
+                .eq("role", UserRole.ADMIN.value)
+                .limit(1)
+                .execute()
+            )
+            total = 0
+            # Supabase python: result.count si está disponible
+            if hasattr(result, "count") and result.count is not None:
+                total = result.count
+            elif result.data:
+                total = len(result.data)
+            return total > 0
+        except Exception:
+            return False
+
     def get_tenants_by_department(self, department_id: str) -> List[User]:
         """Obtiene inquilinos de un departamento"""
         try:

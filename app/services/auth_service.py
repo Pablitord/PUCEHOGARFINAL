@@ -1,4 +1,5 @@
 from typing import Optional
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from ..domain.entities import User
 from ..domain.enums import UserRole
@@ -32,6 +33,9 @@ class AuthService:
             user = UserFactory.create_admin(email, full_name)
         else:
             raise ValueError(f"Rol no válido para registro: {role}")
+
+        # Asignar password hash
+        user.password_hash = generate_password_hash(password.strip())
         
         # TODO: En producción, aquí deberías usar Supabase Auth para crear el usuario
         # y luego guardar los datos adicionales en la tabla users
@@ -48,11 +52,12 @@ class AuthService:
         Por ahora, solo verifica que el usuario exista.
         """
         user = self.user_repo.get_by_email(email)
-        if not user:
+        if not user or not user.password_hash:
             return None
-        
-        # TODO: Integrar con Supabase Auth para validar password
-        # Por ahora, solo retornamos el usuario si existe
+
+        if not check_password_hash(user.password_hash, password.strip()):
+            return None
+
         return user
     
     def get_user_by_id(self, user_id: str) -> Optional[User]:

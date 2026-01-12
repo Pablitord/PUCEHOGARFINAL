@@ -408,7 +408,7 @@ def delete_department(department_id: str):
 @require_auth
 @require_role(UserRole.ADMIN)
 def create_admin():
-    """Crear un nuevo usuario administrador (solo para admins existentes)"""
+    """Crear un nuevo usuario administrador (solo para admins autenticados)"""
     deps = get_services()
     auth_service = deps.get('auth_service')
     
