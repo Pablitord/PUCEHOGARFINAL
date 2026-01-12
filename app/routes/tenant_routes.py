@@ -3,6 +3,7 @@ from datetime import datetime
 
 from .auth_routes import require_auth
 from ..domain.enums import UserRole, PaymentStatus
+from ..domain.entities import Payment
 
 tenant_bp = Blueprint("tenant", __name__)
 
@@ -226,6 +227,32 @@ def upload_receipt(payment_id: str):
             flash(f"Error: {str(e)}", "error")
     
     return render_template("tenant/upload_receipt.html", payment=payment)
+
+
+@tenant_bp.route("/payment/<payment_id>")
+@require_auth
+def payment_detail(payment_id: str):
+    """Detalle de pago para inquilino"""
+    user_id = get_current_user_id()
+    deps = get_services()
+    payment_service = deps.get('payment_service')
+    auth_service = deps.get('auth_service')
+    department_service = deps.get('department_service')
+
+    payment = payment_service.get_payment_by_id(payment_id) if payment_service else None
+    if not payment or payment.tenant_id != user_id:
+        flash("Pago no encontrado", "error")
+        return redirect(url_for("tenant.dashboard"))
+
+    department = department_service.get_department_by_id(payment.department_id) if department_service else None
+    admin = auth_service.get_user_by_id(payment.reviewed_by) if auth_service and payment.reviewed_by else None
+
+    return render_template(
+        "tenant/payment_detail.html",
+        payment=payment,
+        department=department,
+        admin=admin
+    )
 
 
 @tenant_bp.route("/report/new", methods=["GET", "POST"])

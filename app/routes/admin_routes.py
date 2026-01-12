@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from datetime import datetime
 
 from .auth_routes import require_auth, require_role
 from ..domain.enums import UserRole, PaymentStatus, ReportStatus, DepartmentStatus
@@ -30,18 +31,28 @@ def dashboard():
     report_service = deps.get('report_service')
     
     pending_payments = []
+    approved_payments = []
+    rejected_payments = []
     open_reports = []
     
     if payment_service:
         pending_payments = payment_service.get_pending_payments()
+        approved_payments = payment_service.get_payments_by_status(PaymentStatus.APPROVED)
+        rejected_payments = payment_service.get_payments_by_status(PaymentStatus.REJECTED)
     
     if report_service:
         open_reports = report_service.get_open_reports()
+
+    current_month = datetime.utcnow().strftime("%Y-%m")
+    approved_month = len([p for p in approved_payments if p.month == current_month])
+    rejected_month = len([p for p in rejected_payments if p.month == current_month])
     
     return render_template(
         "admin/dashboard.html",
         pending_payments=pending_payments,
-        open_reports=open_reports
+        open_reports=open_reports,
+        approved_month=approved_month,
+        rejected_month=rejected_month
     )
 
 
@@ -142,7 +153,7 @@ def approve_payment(payment_id: str):
                         user_id=tenant.id,
                         title="Pago aprobado",
                         message="Tu pago ha sido aprobado",
-                        link=url_for("tenant.dashboard", _external=False),
+                        link=url_for("tenant.payment_detail", payment_id=approved.id, _external=False),
                         type="payment_approved"
                     )
             flash("Pago aprobado correctamente", "success")
@@ -178,7 +189,7 @@ def reject_payment(payment_id: str):
                         user_id=tenant.id,
                         title="Pago rechazado",
                         message="Tu pago ha sido rechazado. Revisa el comprobante.",
-                        link=url_for("tenant.dashboard", _external=False),
+                        link=url_for("tenant.payment_detail", payment_id=payment.id, _external=False),
                         type="payment_rejected"
                     )
             flash("Pago rechazado", "info")
@@ -213,10 +224,23 @@ def resolve_report(report_id: str):
     user_id = get_current_user_id()
     deps = get_services()
     report_service = deps.get('report_service')
+    notification_service = deps.get('notification_service')
+    auth_service = deps.get('auth_service')
     
     try:
         report = report_service.resolve_report(report_id, user_id)
         if report:
+            # Notificar al inquilino dueño del reporte
+            if notification_service and auth_service:
+                tenant = auth_service.get_user_by_id(report.tenant_id)
+                if tenant:
+                    notification_service.create(
+                        user_id=tenant.id,
+                        title="Reporte resuelto",
+                        message=f"Tu reporte '{report.title}' ha sido resuelto.",
+                        link=url_for("tenant.dashboard", _external=False),
+                        type="report_resolved"
+                    )
             flash("Reporte resuelto correctamente", "success")
         else:
             flash("Error al resolver el reporte", "error")
