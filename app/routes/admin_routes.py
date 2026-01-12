@@ -114,6 +114,7 @@ def approve_payment(payment_id: str):
     payment_service = deps.get('payment_service')
     auth_service = deps.get('auth_service')
     department_service = deps.get('department_service')
+    notification_service = deps.get('notification_service')
     
     try:
         payment = payment_service.get_payment_by_id(payment_id)
@@ -133,6 +134,17 @@ def approve_payment(payment_id: str):
                     tenant.department_id = approved.department_id
                     auth_service.user_repo.update(tenant)
                     department_service.mark_as_occupied(approved.department_id)
+            # Notificar al inquilino
+            if notification_service and auth_service:
+                tenant = auth_service.get_user_by_id(approved.tenant_id)
+                if tenant:
+                    notification_service.create(
+                        user_id=tenant.id,
+                        title="Pago aprobado",
+                        message="Tu pago ha sido aprobado",
+                        link=url_for("tenant.dashboard", _external=False),
+                        type="payment_approved"
+                    )
             flash("Pago aprobado correctamente", "success")
         else:
             flash("Error al aprobar el pago", "error")
@@ -150,12 +162,25 @@ def reject_payment(payment_id: str):
     user_id = get_current_user_id()
     deps = get_services()
     payment_service = deps.get('payment_service')
+    notification_service = deps.get('notification_service')
+    auth_service = deps.get('auth_service')
     
     notes = request.form.get("notes", "")
     
     try:
         payment = payment_service.reject_payment(payment_id, user_id, notes)
         if payment:
+            # Notificar al inquilino
+            if notification_service and auth_service:
+                tenant = auth_service.get_user_by_id(payment.tenant_id)
+                if tenant:
+                    notification_service.create(
+                        user_id=tenant.id,
+                        title="Pago rechazado",
+                        message="Tu pago ha sido rechazado. Revisa el comprobante.",
+                        link=url_for("tenant.dashboard", _external=False),
+                        type="payment_rejected"
+                    )
             flash("Pago rechazado", "info")
         else:
             flash("Error al rechazar el pago", "error")

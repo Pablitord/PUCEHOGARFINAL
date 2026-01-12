@@ -101,3 +101,11 @@ class SupabaseUserRepository:
         except Exception:
             return []
 
+    def get_admins(self) -> List[User]:
+        """Obtiene todos los administradores"""
+        try:
+            result = self.client.table(self.table).select("*").eq("role", UserRole.ADMIN.value).execute()
+            return [self._row_to_entity(row) for row in result.data]
+        except Exception:
+            return []
+

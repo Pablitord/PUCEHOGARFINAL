@@ -1,7 +1,7 @@
 from typing import Protocol, Optional, List
 from datetime import datetime
 
-from ..domain.entities import Department, Payment, Report, User
+from ..domain.entities import Department, Payment, Report, User, Notification
 from ..domain.enums import DepartmentStatus, PaymentStatus, ReportStatus
 
 
@@ -26,6 +26,14 @@ class UserRepository(Protocol):
     
     def get_tenants_by_department(self, department_id: str) -> List[User]:
         """Obtiene inquilinos de un departamento"""
+        ...
+
+    def get_admins(self) -> List[User]:
+        """Obtiene todos los administradores"""
+        ...
+
+    def has_admins(self) -> bool:
+        """Retorna True si existe al menos un admin"""
         ...
 
 
@@ -124,6 +132,22 @@ class ReportRepository(Protocol):
         resolved_by: Optional[str] = None
     ) -> Optional[Report]:
         """Actualiza el estado de un reporte"""
+        ...
+
+
+class NotificationRepository(Protocol):
+    """Interface para repositorio de notificaciones"""
+
+    def create(self, notification: Notification) -> Notification:
+        """Crea una notificación"""
+        ...
+
+    def get_unread_by_user(self, user_id: str, limit: int = 10) -> List[Notification]:
+        """Obtiene notificaciones no leídas de un usuario"""
+        ...
+
+    def mark_as_read(self, notification_id: str, user_id: str) -> bool:
+        """Marca como leída una notificación si pertenece al usuario"""
         ...
 
 

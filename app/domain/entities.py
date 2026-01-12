@@ -19,6 +19,19 @@ class User:
 
 
 @dataclass
+class Notification:
+    """Entidad Notificación"""
+    id: str
+    user_id: str
+    title: str
+    message: str
+    link: Optional[str]
+    type: Optional[str]
+    is_read: bool
+    created_at: Optional[datetime] = None
+
+
+@dataclass
 class Department:
     """Entidad Departamento"""
     id: str

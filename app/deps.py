@@ -17,11 +17,13 @@ from .repositories.supabase.department_repo import SupabaseDepartmentRepository
 from .repositories.supabase.payment_repo import SupabasePaymentRepository
 from .repositories.supabase.report_repo import SupabaseReportRepository
 from .repositories.supabase.storage_repo import SupabaseStorageRepository
+from .repositories.supabase.notification_repo import SupabaseNotificationRepository
 
 from .services.auth_service import AuthService
 from .services.department_service import DepartmentService
 from .services.payment_service import PaymentService
 from .services.report_service import ReportService
+from .services.notification_service import NotificationService
 
 
 def build_dependencies() -> Dict[str, Any]:
@@ -44,17 +46,20 @@ def build_dependencies() -> Dict[str, Any]:
     payment_repo = SupabasePaymentRepository(client)
     report_repo = SupabaseReportRepository(client)
     storage_repo = SupabaseStorageRepository(client)
+    notification_repo = SupabaseNotificationRepository(client)
     
     # Servicios (inyección de dependencias)
     auth_service = AuthService(user_repo)
     department_service = DepartmentService(department_repo, storage_repo)
     payment_service = PaymentService(payment_repo, storage_repo)
     report_service = ReportService(report_repo)
+    notification_service = NotificationService(notification_repo)
     
     return {
         "auth_service": auth_service,
         "department_service": department_service,
         "payment_service": payment_service,
-        "report_service": report_service
+        "report_service": report_service,
+        "notification_service": notification_service
     }
 

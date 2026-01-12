@@ -83,6 +83,7 @@ def new_payment():
     auth_service = deps.get('auth_service')
     payment_service = deps.get('payment_service')
     department_service = deps.get('department_service')
+    notification_service = deps.get('notification_service')
 
     user = auth_service.get_user_by_id(user_id) if auth_service else None
     payments = payment_service.get_payments_by_tenant(user_id) if payment_service else []
@@ -149,6 +150,17 @@ def new_payment():
                 file_name=file.filename,
                 notes=notes if notes else None
             )
+            # Notificar a admins
+            if payment and notification_service and auth_service:
+                admins = auth_service.user_repo.get_admins()
+                for admin in admins:
+                    notification_service.create(
+                        user_id=admin.id,
+                        title="Nuevo pago/reserva",
+                        message=f"Se registró un pago para {departments[0].title if departments else 'un departamento'}",
+                        link=url_for("admin.payment_detail", payment_id=payment.id, _external=False),
+                        type="payment_created"
+                    )
             flash("Pago registrado correctamente. Está pendiente de revisión.", "success")
             return redirect(url_for("tenant.dashboard"))
         except ValueError as e:
@@ -231,6 +243,7 @@ def new_report():
     user = auth_service.get_user_by_id(user_id)
     payment_service = deps.get('payment_service')
     department_service = deps.get('department_service')
+    notification_service = deps.get('notification_service')
 
     payments = payment_service.get_payments_by_tenant(user_id) if payment_service else []
 
@@ -270,6 +283,17 @@ def new_report():
                 title=title,
                 description=description
             )
+            # Notificar a admins sobre nuevo reporte
+            if notification_service and auth_service:
+                admins = auth_service.user_repo.get_admins()
+                for admin in admins:
+                    notification_service.create(
+                        user_id=admin.id,
+                        title="Nuevo reporte",
+                        message=f"{title}",
+                        link=url_for("admin.reports_list", _external=False),
+                        type="report_created"
+                    )
             flash("Reporte creado correctamente", "success")
             return redirect(url_for("tenant.dashboard"))
         except ValueError as e:
