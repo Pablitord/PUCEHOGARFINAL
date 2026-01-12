@@ -3,101 +3,115 @@
 
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-md-8">
-    <div class="card shadow">
-      <div class="card-header bg-success text-white">
-        <h5 class="mb-0"><i class="bi bi-credit-card"></i> Realizar Pago - {{ department.title }}</h5>
-      </div>
-      <div class="card-body">
-        <div class="alert alert-info">
-          <h6><i class="bi bi-info-circle"></i> Información del Departamento</h6>
-          <p class="mb-0">
-            <strong>Dirección:</strong> {{ department.address }}<br>
-            <strong>Precio mensual:</strong> ${{ "%.2f"|format(department.price) }}
-          </p>
+  <div class="col-lg-8">
+    <div class="app-card p-4">
+      <div class="d-flex align-items-center gap-2 mb-4">
+        <i class="bi bi-credit-card text-success fs-4"></i>
+        <div>
+          <h4 class="mb-0 fw-bold">Realizar Pago</h4>
+          <p class="text-muted mb-0">{{ department.title }} · {{ department.address }}</p>
         </div>
+      </div>
 
-        <form method="POST" action="{{ url_for('visitor.pay_department', department_id=department.id) }}" enctype="multipart/form-data">
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="start_date" class="form-label">Inicio de reserva (opcional)</label>
+      <div class="border rounded-3 p-3 mb-3 bg-light">
+        <div class="d-flex align-items-start gap-2">
+          <i class="bi bi-info-circle text-primary fs-5"></i>
+          <div>
+            <h6 class="mb-1">Información del Departamento</h6>
+            <p class="mb-0">
+              <strong>Dirección:</strong> {{ department.address }}<br>
+              <strong>Precio mensual:</strong> ${{ "%.2f"|format(department.price) }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <form method="POST" action="{{ url_for('visitor.pay_department', department_id=department.id) }}" enctype="multipart/form-data" class="row g-3">
+        <div class="col-12">
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <i class="bi bi-calendar2-week text-primary"></i>
+            <h6 class="mb-0">Reserva (opcional)</h6>
+          </div>
+          <div class="row g-2">
+            <div class="col-md-6">
+              <label for="start_date" class="form-label fw-semibold">Inicio de reserva</label>
               <input type="date" class="form-control" id="start_date" name="start_date">
             </div>
-            <div class="col-md-6 mb-3">
-              <label for="end_date" class="form-label">Fin de reserva (opcional)</label>
+            <div class="col-md-6">
+              <label for="end_date" class="form-label fw-semibold">Fin de reserva</label>
               <input type="date" class="form-control" id="end_date" name="end_date">
             </div>
-            <div class="col-12 mb-2">
+            <div class="col-12">
               <small class="form-text text-muted" id="reservation_hint">
                 Si eliges fechas, prorratearemos: (precio mensual / 30) * días reservados. Máx. 30 días.
               </small>
             </div>
           </div>
+        </div>
 
-          <div class="mb-3">
-            <label for="amount" class="form-label">Monto a pagar *</label>
-            <div class="input-group">
-              <span class="input-group-text">$</span>
-              <input 
-                type="number" 
-                step="0.01" 
-                min="0.01" 
-                class="form-control" 
-                id="amount" 
-                name="amount" 
-                value="{{ department.price }}"
-                required
-              >
-            </div>
-            <small class="form-text text-muted" id="amount_hint">Puedes ajustar el monto; mínimo: precio prorrateado.</small>
-          </div>
-
-          <div class="mb-3">
-            <label for="month" class="form-label">Mes del pago *</label>
+        <div class="col-12">
+          <label for="amount" class="form-label fw-semibold">Monto a pagar *</label>
+          <div class="input-group">
+            <span class="input-group-text">$</span>
             <input 
-              type="month" 
+              type="number" 
+              step="0.01" 
+              min="0.01" 
               class="form-control" 
-              id="month" 
-              name="month" 
+              id="amount" 
+              name="amount" 
+              value="{{ department.price }}"
               required
             >
-            <small class="form-text text-muted">Selecciona el mes que estás pagando</small>
           </div>
+          <small class="form-text text-muted" id="amount_hint">Puedes ajustar el monto; mínimo: precio prorrateado.</small>
+        </div>
 
-          <div class="mb-3">
-            <label for="receipt" class="form-label">Comprobante de pago *</label>
-            <input 
-              type="file" 
-              class="form-control" 
-              id="receipt" 
-              name="receipt" 
-              accept="image/*,.pdf"
-              required
-            >
-            <small class="form-text text-muted">Formatos aceptados: JPG, PNG, PDF (máx. 10MB)</small>
-          </div>
+        <div class="col-md-6">
+          <label for="month" class="form-label fw-semibold">Mes del pago *</label>
+          <input 
+            type="month" 
+            class="form-control" 
+            id="month" 
+            name="month" 
+            required
+          >
+          <small class="form-text text-muted">Selecciona el mes que estás pagando.</small>
+        </div>
 
-          <div class="mb-3">
-            <label for="notes" class="form-label">Notas adicionales (opcional)</label>
-            <textarea 
-              class="form-control" 
-              id="notes" 
-              name="notes" 
-              rows="3"
-              placeholder="Información adicional sobre el pago..."
-            ></textarea>
-          </div>
+        <div class="col-md-6">
+          <label for="receipt" class="form-label fw-semibold">Comprobante de pago *</label>
+          <input 
+            type="file" 
+            class="form-control" 
+            id="receipt" 
+            name="receipt" 
+            accept="image/*,.pdf"
+            required
+          >
+          <small class="form-text text-muted">Formatos: JPG, PNG, PDF (máx. 10MB).</small>
+        </div>
 
-          <div class="d-grid gap-2">
-            <button type="submit" class="btn btn-success btn-lg">
-              <i class="bi bi-check-circle"></i> Registrar Pago
-            </button>
-            <a href="{{ url_for('visitor.department_detail', department_id=department.id) }}" class="btn btn-outline-secondary">
-              <i class="bi bi-x-circle"></i> Cancelar
-            </a>
-          </div>
-        </form>
-      </div>
+        <div class="col-12">
+          <label for="notes" class="form-label fw-semibold">Notas adicionales (opcional)</label>
+          <textarea 
+            class="form-control" 
+            id="notes" 
+            name="notes" 
+            rows="3"
+            placeholder="Información adicional sobre el pago..."
+          ></textarea>
+        </div>
+
+        <div class="col-12 d-grid gap-2">
+          <button type="submit" class="btn btn-success btn-lg btn-icon">
+            <i class="bi bi-check-circle"></i> Registrar Pago
+          </button>
+          <a href="{{ url_for('visitor.department_detail', department_id=department.id) }}" class="btn btn-outline-secondary btn-icon">
+            <i class="bi bi-x-circle"></i> Cancelar
+          </a>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -135,29 +149,34 @@
       const endVal = endInput.value;
       if (!startVal && !endVal) {
         amountInput.value = price.toFixed(2);
+        amountInput.classList.remove('is-auto');
         hint.textContent = 'Si eliges fechas, prorratearemos: (precio mensual / 30) * días reservados. Máx. 30 días.';
         amountHint.textContent = 'Puedes ajustar el monto; mínimo: precio prorrateado.';
         return;
       }
       if (!startVal || !endVal) {
+        amountInput.classList.remove('is-auto');
         hint.textContent = 'Selecciona fecha inicio y fin. Máx. 30 días.';
         return;
       }
       const start = new Date(startVal + 'T00:00:00');
       const end = new Date(endVal + 'T00:00:00');
       if (end < start) {
+        amountInput.classList.remove('is-auto');
         hint.textContent = 'La fecha fin no puede ser menor que la fecha inicio.';
         return;
       }
       const diffMs = end - start;
       const days = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
       if (days < 1 || days > 30) {
+        amountInput.classList.remove('is-auto');
         hint.textContent = 'El rango de reserva debe ser entre 1 y 30 días.';
         return;
       }
       const daily = price / 30.0;
       const prorated = (daily * days);
       amountInput.value = prorated.toFixed(2);
+      amountInput.classList.add('is-auto');
       hint.textContent = `Reserva de ${days} día(s). Monto prorrateado: $${prorated.toFixed(2)}.`;
       amountHint.textContent = 'Monto ajustado automáticamente al prorrateo.';
     }

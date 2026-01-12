@@ -3,15 +3,47 @@
 
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-md-8">
-    <div class="card shadow">
+  <div class="col-lg-7">
+    <div class="card app-card shadow-sm">
       <div class="card-header bg-warning text-dark">
         <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Crear Nuevo Reporte</h5>
       </div>
       <div class="card-body">
-        <form method="POST" action="{{ url_for('tenant.new_report') }}">
-          <div class="mb-3">
-            <label for="title" class="form-label">Título *</label>
+        <div class="alert alert-light border mb-4">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-info-circle text-warning fs-5"></i>
+            <div>
+              <h6 class="mb-1">Detalle el problema</h6>
+              <p class="mb-0 text-muted small">Usa un título claro y una descripción breve para atenderlo más rápido.</p>
+            </div>
+          </div>
+        </div>
+        <form method="POST" action="{{ url_for('tenant.new_report') }}" class="row g-3">
+          {% if departments and departments|length > 1 %}
+          <div class="col-12">
+            <label for="department_id" class="form-label fw-semibold">Departamento *</label>
+            <select class="form-select" id="department_id" name="department_id" required>
+              {% for dept in departments %}
+                <option value="{{ dept.id }}">{{ dept.title }} - {{ dept.address }}</option>
+              {% endfor %}
+            </select>
+            <small class="form-text text-muted">Selecciona el departamento al que se asocia el reporte.</small>
+          </div>
+          {% elif departments and departments|length == 1 %}
+            <input type="hidden" name="department_id" value="{{ departments[0].id }}">
+            <div class="col-12">
+              <div class="alert alert-secondary d-flex align-items-center gap-2 mb-0">
+                <i class="bi bi-building text-secondary"></i>
+                <div>
+                  <div class="fw-semibold mb-0">Departamento</div>
+                  <div class="small text-muted">{{ departments[0].title }} - {{ departments[0].address }}</div>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="col-12">
+            <label for="title" class="form-label fw-semibold">Título *</label>
             <input 
               type="text" 
               class="form-control" 
@@ -22,8 +54,8 @@
             >
           </div>
 
-          <div class="mb-3">
-            <label for="description" class="form-label">Descripción *</label>
+          <div class="col-12">
+            <label for="description" class="form-label fw-semibold">Descripción *</label>
             <textarea 
               class="form-control" 
               id="description" 
@@ -32,13 +64,14 @@
               required
               placeholder="Describe el problema o situación..."
             ></textarea>
+            <small class="form-text text-muted">Incluye ubicación dentro del departamento y datos útiles.</small>
           </div>
 
-          <div class="d-grid gap-2">
-            <button type="submit" class="btn btn-warning">
+          <div class="col-12 d-grid gap-2">
+            <button type="submit" class="btn btn-warning btn-icon">
               <i class="bi bi-check-circle"></i> Crear Reporte
             </button>
-            <a href="{{ url_for('tenant.dashboard') }}" class="btn btn-outline-secondary">
+            <a href="{{ url_for('tenant.dashboard') }}" class="btn btn-outline-secondary btn-icon">
               <i class="bi bi-x-circle"></i> Cancelar
             </a>
           </div>

@@ -9,29 +9,39 @@
   </div>
 {% endif %}
 
-{% if department %}
-  <div class="card app-card mb-4">
-    <div class="card-body">
-      <div class="d-flex justify-content-between align-items-start">
-        <div class="me-3">
-          <h5 class="fw-semibold mb-1">{{ department.title }}</h5>
-          <p class="meta-line mb-2"><i class="bi bi-geo-alt"></i> {{ department.address }}</p>
-          {% if department.rooms or department.bathrooms or department.area %}
-            <p class="meta-line mb-2">
-              {% if department.rooms %}<i class="bi bi-door-open"></i> {{ department.rooms }} hab.{% endif %}
-              {% if department.bathrooms %} | <i class="bi bi-droplet"></i> {{ department.bathrooms }} baños{% endif %}
-              {% if department.area %} | <i class="bi bi-rulers"></i> {{ department.area }} m²{% endif %}
-            </p>
-          {% endif %}
-          <p class="mb-0"><strong>Precio mensual:</strong> <span class="text-success fw-bold">${{ "%.2f"|format(department.price) }}</span></p>
-        </div>
-        <div class="text-end">
-          <a href="{{ url_for('visitor.department_detail', department_id=department.id) }}" class="btn btn-outline-primary btn-sm">
-            <i class="bi bi-eye"></i> Ver Detalle
-          </a>
+{% if departments %}
+  <div class="row g-3 mb-4">
+    {% for dept in departments %}
+      <div class="col-md-6">
+        <div class="card app-card h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div class="me-2">
+                <h5 class="fw-semibold mb-1">{{ dept.title }}</h5>
+                <p class="meta-line mb-2"><i class="bi bi-geo-alt"></i> {{ dept.address }}</p>
+              </div>
+              <span class="soft-badge soft-badge-success">Asignado</span>
+            </div>
+            {% if dept.rooms or dept.bathrooms or dept.area %}
+              <p class="meta-line mb-2">
+                {% if dept.rooms %}<i class="bi bi-door-open"></i> {{ dept.rooms }} hab.{% endif %}
+                {% if dept.bathrooms %} | <i class="bi bi-droplet"></i> {{ dept.bathrooms }} baños{% endif %}
+                {% if dept.area %} | <i class="bi bi-rulers"></i> {{ dept.area }} m²{% endif %}
+              </p>
+            {% endif %}
+            <p class="mb-3"><strong>Precio mensual:</strong> <span class="text-success fw-bold">${{ "%.2f"|format(dept.price) }}</span></p>
+            <div class="d-flex justify-content-between align-items-center">
+              <a href="{{ url_for('visitor.department_detail', department_id=dept.id) }}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-eye"></i> Ver Detalle
+              </a>
+              <a href="{{ url_for('visitor.pay_department', department_id=dept.id) }}" class="btn btn-success btn-sm">
+                <i class="bi bi-credit-card"></i> Pagar / Reservar
+              </a>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    {% endfor %}
   </div>
 {% else %}
   <div class="alert alert-info mb-4">
