@@ -3,7 +3,7 @@ from datetime import datetime
 
 from .auth_routes import require_auth
 from ..domain.enums import UserRole, PaymentStatus
-from ..domain.entities import Payment
+from ..domain.entities import Payment, Report
 
 tenant_bp = Blueprint("tenant", __name__)
 
@@ -252,6 +252,29 @@ def payment_detail(payment_id: str):
         payment=payment,
         department=department,
         admin=admin
+    )
+
+
+@tenant_bp.route("/report/<report_id>")
+@require_auth
+def report_detail(report_id: str):
+    """Detalle de reporte para inquilino"""
+    user_id = get_current_user_id()
+    deps = get_services()
+    report_service = deps.get('report_service')
+    department_service = deps.get('department_service')
+
+    report = report_service.get_report_by_id(report_id) if report_service else None
+    if not report or report.tenant_id != user_id:
+        flash("Reporte no encontrado", "error")
+        return redirect(url_for("tenant.dashboard"))
+
+    department = department_service.get_department_by_id(report.department_id) if department_service else None
+
+    return render_template(
+        "tenant/report_detail.html",
+        report=report,
+        department=department
     )
 
 

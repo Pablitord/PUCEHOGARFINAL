@@ -43,15 +43,20 @@
                   {% endif %}
                 </td>
                 <td class="text-end">
-                  {% if report.status.value == 'open' or report.status.value == 'in_progress' %}
-                    <form method="POST" action="{{ url_for('admin.resolve_report', report_id=report.id) }}" class="d-inline">
-                      <button type="submit" class="btn btn-sm btn-primary">
-                        <i class="bi bi-check-circle"></i> Resolver
-                      </button>
-                    </form>
-                  {% else %}
-                    <span class="text-muted">Resuelto</span>
-                  {% endif %}
+                  <div class="d-flex gap-2 justify-content-end">
+                    <a href="{{ url_for('admin.report_detail', report_id=report.id) }}" class="btn btn-sm btn-outline-primary btn-icon">
+                      <i class="bi bi-eye"></i> Ver
+                    </a>
+                    {% if report.status.value == 'open' or report.status.value == 'in_progress' %}
+                      <form method="POST" action="{{ url_for('admin.resolve_report', report_id=report.id) }}" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-primary">
+                          <i class="bi bi-check-circle"></i> Resolver
+                        </button>
+                      </form>
+                    {% else %}
+                      <span class="text-muted small">Resuelto</span>
+                    {% endif %}
+                  </div>
                 </td>
               </tr>
             {% endfor %}

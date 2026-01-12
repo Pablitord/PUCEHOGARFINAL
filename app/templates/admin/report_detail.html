@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Detalle de Reporte - PUCEHOGAR{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <div class="app-card p-4 mb-3">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <div class="text-muted">Detalle de reporte</div>
+          <h4 class="fw-bold mb-1">{{ report.title }}</h4>
+          <div class="soft-badge {% if report.status.value == 'open' %}soft-badge-danger{% elif report.status.value == 'in_progress' %}soft-badge-warning{% elif report.status.value == 'resolved' %}soft-badge-success{% else %}soft-badge-muted{% endif %}">
+            {{ report.status.value|title }}
+          </div>
+        </div>
+        <div class="text-end text-muted small">
+          {% if report.created_at and report.created_at.strftime is defined %}
+            Creado: {{ report.created_at.strftime('%d/%m/%Y %H:%M') }}
+          {% elif report.created_at %}
+            Creado: {{ report.created_at }}
+          {% endif %}
+          {% if report.updated_at %}
+            <br>Actualizado: {{ report.updated_at }}
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <p class="text-muted mb-1">Descripción</p>
+        <div class="app-card p-3 bg-light mb-0">
+          {{ report.description }}
+        </div>
+      </div>
+
+      <form method="POST" class="mb-3">
+        <p class="text-muted mb-1">Notas internas</p>
+        <textarea name="notes" rows="4" class="form-control mb-2" placeholder="Seguimiento, recordatorios...">{{ report.notes or '' }}</textarea>
+        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-save"></i> Guardar notas</button>
+      </form>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <p class="text-muted mb-1">Inquilino</p>
+          {% if tenant %}
+            <div class="fw-semibold">{{ tenant.full_name or tenant.email }}</div>
+            <div class="text-muted small">{{ tenant.email }}</div>
+          {% else %}
+            <div class="text-muted">N/D</div>
+          {% endif %}
+        </div>
+        <div class="col-md-6">
+          <p class="text-muted mb-1">Departamento</p>
+          {% if department %}
+            <div class="fw-semibold">{{ department.title }}</div>
+            <div class="text-muted small">{{ department.address }}</div>
+          {% else %}
+            <div class="text-muted">N/D</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <a href="{{ url_for('admin.reports_list') }}" class="btn btn-outline-secondary btn-icon">
+          <i class="bi bi-arrow-left"></i> Volver
+        </a>
+        {% if report.status.value == 'open' or report.status.value == 'in_progress' %}
+          <form method="POST" action="{{ url_for('admin.resolve_report', report_id=report.id) }}">
+            <button type="submit" class="btn btn-success btn-icon">
+              <i class="bi bi-check-circle"></i> Resolver
+            </button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

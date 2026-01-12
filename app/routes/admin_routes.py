@@ -76,8 +76,17 @@ def payments_list():
             except ValueError:
                 payments = payment_service.get_pending_payments()
         else:
-            # Obtener todos los pagos pendientes por defecto
-            payments = payment_service.get_pending_payments()
+            # Todos los pagos, cualquier estado
+            pending = payment_service.get_payments_by_status(PaymentStatus.PENDING)
+            approved = payment_service.get_payments_by_status(PaymentStatus.APPROVED)
+            rejected = payment_service.get_payments_by_status(PaymentStatus.REJECTED)
+            payments = pending + approved + rejected
+            # Ordenar por fecha de creación desc
+            payments = sorted(
+                payments,
+                key=lambda p: p.created_at or p.updated_at or p.month,
+                reverse=True
+            )
 
     # Mapear departamentos para mostrar en tabla
     departments_map = {}
@@ -248,6 +257,51 @@ def resolve_report(report_id: str):
         flash(f"Error: {str(e)}", "error")
     
     return redirect(url_for("admin.reports_list"))
+
+
+@admin_bp.route("/report/<report_id>", methods=["GET", "POST"])
+@require_auth
+@require_role(UserRole.ADMIN)
+def report_detail(report_id: str):
+    """Detalle de un reporte"""
+    deps = get_services()
+    report_service = deps.get('report_service')
+    auth_service = deps.get('auth_service')
+    department_service = deps.get('department_service')
+    notification_service = deps.get('notification_service')
+
+    report = report_service.get_report_by_id(report_id) if report_service else None
+    if not report:
+        flash("Reporte no encontrado", "error")
+        return redirect(url_for("admin.reports_list"))
+
+    tenant = auth_service.get_user_by_id(report.tenant_id) if auth_service else None
+    department = department_service.get_department_by_id(report.department_id) if department_service else None
+
+    if request.method == "POST":
+        notes = request.form.get("notes", "").strip()
+        updated = report_service.set_notes(report_id, notes) if report_service else None
+        if updated:
+            # Notificar al tenant que se agregaron notas/seguimiento
+            if notification_service and tenant:
+                notification_service.create(
+                    user_id=tenant.id,
+                    title="Actualización de reporte",
+                    message="Se agregaron notas a tu reporte.",
+                    link=url_for("tenant.report_detail", report_id=report.id, _external=False),
+                    type="report_updated"
+                )
+            flash("Notas actualizadas", "success")
+            return redirect(url_for("admin.report_detail", report_id=report_id))
+        else:
+            flash("No se pudieron guardar las notas", "error")
+
+    return render_template(
+        "admin/report_detail.html",
+        report=report,
+        tenant=tenant,
+        department=department
+    )
 
 
 @admin_bp.route("/departments")

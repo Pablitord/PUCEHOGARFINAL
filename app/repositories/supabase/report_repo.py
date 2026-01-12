@@ -24,6 +24,7 @@ class SupabaseReportRepository:
             title=row["title"],
             description=row["description"],
             status=ReportStatus(row["status"]),
+            notes=row.get("notes"),
             created_at=row.get("created_at"),
             updated_at=row.get("updated_at"),
             resolved_by=row.get("resolved_by")
@@ -70,7 +71,8 @@ class SupabaseReportRepository:
             "department_id": report.department_id,
             "title": report.title,
             "description": report.description,
-            "status": report.status.value
+            "status": report.status.value,
+            "notes": report.notes
         }
         result = self.client.table(self.table).insert(data).execute()
         return self._row_to_entity(result.data[0])
@@ -83,6 +85,7 @@ class SupabaseReportRepository:
             "title": report.title,
             "description": report.description,
             "status": report.status.value,
+            "notes": report.notes,
             "resolved_by": report.resolved_by,
             "updated_at": datetime.utcnow().isoformat()
         }
@@ -105,6 +108,20 @@ class SupabaseReportRepository:
                 data["resolved_by"] = resolved_by
             
             result = self.client.table(self.table).update(data).eq("id", report_id).execute()
+            if result.data:
+                return self._row_to_entity(result.data[0])
+            return None
+        except Exception:
+            return None
+
+    def update_notes(self, report_id: str, notes: Optional[str]) -> Optional[Report]:
+        try:
+            result = (
+                self.client.table(self.table)
+                .update({"notes": notes, "updated_at": datetime.utcnow().isoformat()})
+                .eq("id", report_id)
+                .execute()
+            )
             if result.data:
                 return self._row_to_entity(result.data[0])
             return None

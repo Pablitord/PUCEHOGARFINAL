@@ -139,6 +139,7 @@
                   <th>Título</th>
                   <th>Estado</th>
                   <th>Fecha</th>
+                  <th class="text-end">Acción</th>
                 </tr>
               </thead>
               <tbody>
@@ -158,6 +159,11 @@
                       {% else %}
                         N/A
                       {% endif %}
+                    </td>
+                    <td class="text-end">
+                      <a href="{{ url_for('tenant.report_detail', report_id=report.id) }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-eye"></i>
+                      </a>
                     </td>
                   </tr>
                 {% endfor %}

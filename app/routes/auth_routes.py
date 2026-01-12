@@ -118,6 +118,20 @@ def logout():
     return redirect(url_for("visitor.home"))
 
 
+@auth_bp.route("/notifications/read-all", methods=["POST"])
+def mark_notifications_read():
+    """Marca todas las notificaciones del usuario como leídas"""
+    if 'user_id' not in session:
+        return redirect(url_for("auth.login"))
+    user_id = session.get('user_id')
+    deps = get_services()
+    notification_service = deps.get("notification_service")
+    if notification_service:
+        notification_service.mark_all_as_read(user_id)
+    next_url = request.referrer or url_for("visitor.home")
+    return redirect(next_url)
+
+
 def require_auth(f):
     """Decorador para requerir autenticación"""
     from functools import wraps

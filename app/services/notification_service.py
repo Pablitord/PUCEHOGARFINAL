@@ -37,3 +37,6 @@ class NotificationService:
     def mark_as_read(self, notification_id: str, user_id: str) -> bool:
         return self.repo.mark_as_read(notification_id, user_id)
 
+    def mark_all_as_read(self, user_id: str) -> bool:
+        return self.repo.mark_all_as_read(user_id)
+

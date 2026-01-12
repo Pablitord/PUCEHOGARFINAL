@@ -44,6 +44,13 @@
                   <span class="badge bg-secondary">{{ notifications_count }}</span>
                 {% endif %}
               </li>
+              {% if notifications_count and notifications_count > 0 %}
+              <li class="px-3 pb-2">
+                <form method="POST" action="{{ url_for('auth.mark_notifications_read') }}" class="d-grid">
+                  <button type="submit" class="btn btn-sm btn-outline-secondary">Marcar todas como leídas</button>
+                </form>
+              </li>
+              {% endif %}
               {% if notifications_unread %}
                 {% for n in notifications_unread %}
                   <li>

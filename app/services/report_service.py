@@ -101,3 +101,7 @@ class ReportService:
             resolved_by=resolved_by
         )
 
+    def set_notes(self, report_id: str, notes: Optional[str]) -> Optional[Report]:
+        """Actualiza notas del reporte"""
+        return self.report_repo.update_notes(report_id, notes)
+

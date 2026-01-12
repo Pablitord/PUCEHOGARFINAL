@@ -67,3 +67,15 @@ class SupabaseNotificationRepository:
         except Exception:
             return False
 
+    def mark_all_as_read(self, user_id: str) -> bool:
+        try:
+            res = (
+                self.client.table(self.table)
+                .update({"is_read": True, "updated_at": datetime.utcnow().isoformat()})
+                .eq("user_id", user_id)
+                .execute()
+            )
+            return bool(res.data)
+        except Exception:
+            return False
+

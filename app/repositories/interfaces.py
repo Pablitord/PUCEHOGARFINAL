@@ -134,6 +134,10 @@ class ReportRepository(Protocol):
         """Actualiza el estado de un reporte"""
         ...
 
+    def update_notes(self, report_id: str, notes: Optional[str]) -> Optional[Report]:
+        """Actualiza notas del reporte"""
+        ...
+
 
 class NotificationRepository(Protocol):
     """Interface para repositorio de notificaciones"""
@@ -148,6 +152,10 @@ class NotificationRepository(Protocol):
 
     def mark_as_read(self, notification_id: str, user_id: str) -> bool:
         """Marca como leída una notificación si pertenece al usuario"""
+        ...
+
+    def mark_all_as_read(self, user_id: str) -> bool:
+        """Marca todas las notificaciones del usuario como leídas"""
         ...
 
 
