@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, make_response
 from datetime import datetime
+from fpdf import FPDF
 
 from .auth_routes import require_auth, require_role
 from ..domain.enums import UserRole, PaymentStatus, ReportStatus, DepartmentStatus
@@ -223,6 +224,70 @@ def reports_list():
         reports = report_service.get_all_reports()
     
     return render_template("admin/reports.html", reports=reports)
+
+
+@admin_bp.route("/reports/export/pdf")
+@require_auth
+@require_role(UserRole.ADMIN)
+def export_reports_pdf():
+    """Exporta todos los reportes a PDF"""
+    deps = get_services()
+    report_service = deps.get('report_service')
+    auth_service = deps.get('auth_service')
+    department_service = deps.get('department_service')
+
+    reports = report_service.get_all_reports() if report_service else []
+
+    def safe_text(value):
+        """Convierte texto a latin-1 evitando errores por caracteres especiales"""
+        return str(value or "").encode("latin-1", "replace").decode("latin-1")
+
+    def format_date(value):
+        if isinstance(value, datetime):
+            return value.strftime("%d/%m/%Y %H:%M")
+        return str(value) if value else "N/A"
+
+    pdf = FPDF()
+    pdf.set_margins(15, 15, 15)
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+    content_width = pdf.w - pdf.l_margin - pdf.r_margin
+    pdf.set_font("Helvetica", "B", 16)
+    pdf.cell(content_width, 10, "Listado de reportes", ln=1)
+    pdf.set_font("Helvetica", "", 10)
+    pdf.cell(content_width, 8, f"Generado: {datetime.utcnow().strftime('%d/%m/%Y %H:%M')} UTC", ln=1)
+    pdf.ln(2)
+
+    if not reports:
+        pdf.set_font("Helvetica", "I", 11)
+        pdf.cell(content_width, 8, "No hay reportes disponibles.", ln=1)
+    else:
+        for idx, report in enumerate(reports, start=1):
+            tenant = auth_service.get_user_by_id(report.tenant_id) if auth_service else None
+            department = department_service.get_department_by_id(report.department_id) if department_service else None
+
+            pdf.set_font("Helvetica", "B", 12)
+            pdf.cell(content_width, 8, f"{idx}. {safe_text(report.title)}", ln=1)
+            pdf.set_font("Helvetica", "", 10)
+            pdf.cell(content_width, 6, f"Inquilino: {safe_text(tenant.full_name if tenant and tenant.full_name else tenant.email if tenant else 'N/D')}", ln=1)
+            pdf.cell(content_width, 6, f"Departamento: {safe_text(department.title if department else 'N/D')}", ln=1)
+            pdf.cell(content_width, 6, f"Estado: {safe_text(report.status.value)} | Creado: {safe_text(format_date(report.created_at))}", ln=1)
+            pdf.set_x(pdf.l_margin)
+            pdf.multi_cell(content_width, 6, f"Descripción: {safe_text(report.description)}")
+            if report.notes:
+                pdf.set_x(pdf.l_margin)
+                pdf.multi_cell(content_width, 6, f"Notas: {safe_text(report.notes)}")
+            pdf.ln(2)
+
+    pdf_output = pdf.output(dest="S")
+    if isinstance(pdf_output, str):
+        pdf_bytes = pdf_output.encode("latin-1", "replace")
+    else:
+        pdf_bytes = bytes(pdf_output)
+    response = make_response(pdf_bytes)
+    response.headers.set("Content-Type", "application/pdf")
+    response.headers.set("Content-Disposition", "attachment", filename="reportes.pdf")
+    return response
 
 
 @admin_bp.route("/report/<report_id>/resolve", methods=["POST"])
