@@ -48,9 +48,53 @@
         <div class="col-12">
           <p class="mb-1 text-muted">Comprobante</p>
           {% if payment.receipt_url %}
-            <a href="{{ payment.receipt_url }}" target="_blank" class="btn btn-outline-primary btn-sm btn-icon">
-              <i class="bi bi-eye"></i> Ver comprobante
-            </a>
+            {% set receipt_url = payment.receipt_url %}
+            {% set lower = receipt_url.lower() %}
+            {% set base_name = lower.split('?')[0] %}
+            {% set is_pdf = base_name.endswith('.pdf') %}
+            {% set is_image = base_name.endswith('.png') or base_name.endswith('.jpg') or base_name.endswith('.jpeg') or base_name.endswith('.webp') or base_name.endswith('.gif') %}
+
+            {% if is_pdf %}
+              <div class="border rounded-3 p-3 bg-light d-flex align-items-center justify-content-between mb-2">
+                <div class="d-flex align-items-center gap-3">
+                  <i class="bi bi-file-earmark-pdf text-danger fs-4"></i>
+                  <div>
+                    <div class="fw-semibold mb-0">Comprobante en PDF</div>
+                    <div class="text-muted small">Ábrelo en una pestaña aparte</div>
+                  </div>
+                </div>
+                <a href="{{ receipt_url }}" target="_blank" class="btn btn-outline-primary btn-sm btn-icon">
+                  <i class="bi bi-box-arrow-up-right"></i> Ver PDF
+                </a>
+              </div>
+              <div class="ratio ratio-4x3 border rounded-3 overflow-hidden bg-white">
+                <iframe src="{{ receipt_url }}" title="PDF comprobante" style="border:0;"></iframe>
+              </div>
+            {% elif is_image %}
+              <div class="border rounded-3 p-3 bg-light d-flex align-items-center justify-content-between mb-2">
+                <div class="d-flex align-items-center gap-3">
+                  <i class="bi bi-image text-success fs-4"></i>
+                  <div>
+                    <div class="fw-semibold mb-0">Comprobante en imagen</div>
+                    <div class="text-muted small">Haz clic para verlo en otra pestaña</div>
+                  </div>
+                </div>
+                <a href="{{ receipt_url }}" target="_blank" class="btn btn-outline-primary btn-sm btn-icon">
+                  <i class="bi bi-box-arrow-up-right"></i> Ver imagen
+                </a>
+              </div>
+              <div class="ratio ratio-4x3 border rounded-3 overflow-hidden bg-white mb-2">
+                <img src="{{ receipt_url }}" alt="Comprobante de Pago" class="w-100 h-100" style="object-fit: contain;">
+              </div>
+              <a href="{{ receipt_url }}" target="_blank" class="btn btn-outline-primary btn-sm btn-icon">
+                <i class="bi bi-eye"></i> Ver comprobante
+              </a>
+            {% else %}
+              <img src="{{ receipt_url }}" class="img-fluid rounded shadow-sm mb-2" alt="Comprobante de Pago" style="max-height: 420px; object-fit: contain;">
+              <a href="{{ receipt_url }}" target="_blank" class="btn btn-outline-primary btn-sm btn-icon">
+                <i class="bi bi-eye"></i> Ver comprobante
+              </a>
+            {% endif %}
           {% else %}
             <div class="alert alert-warning mb-0">
               <i class="bi bi-exclamation-triangle"></i> No hay comprobante asociado.
