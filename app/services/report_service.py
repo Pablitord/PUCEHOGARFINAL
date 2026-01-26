@@ -32,7 +32,8 @@ class ReportService:
         tenant_id: str,
         department_id: str,
         title: str,
-        description: str
+        description: str,
+        attachment_url: Optional[str] = None
     ) -> Report:
         """Crea un nuevo reporte"""
         # Validaciones
@@ -47,7 +48,8 @@ class ReportService:
             department_id=department_id,
             title=title.strip(),
             description=description.strip(),
-            status=ReportStatus.OPEN
+            status=ReportStatus.OPEN,
+            attachment_url=attachment_url
         )
         
         return self.report_repo.create(report)

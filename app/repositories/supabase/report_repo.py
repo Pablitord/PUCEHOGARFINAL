@@ -25,6 +25,7 @@ class SupabaseReportRepository:
             description=row["description"],
             status=ReportStatus(row["status"]),
             notes=row.get("notes"),
+            attachment_url=row.get("attachment_url"),
             created_at=row.get("created_at"),
             updated_at=row.get("updated_at"),
             resolved_by=row.get("resolved_by")
@@ -72,7 +73,8 @@ class SupabaseReportRepository:
             "title": report.title,
             "description": report.description,
             "status": report.status.value,
-            "notes": report.notes
+            "notes": report.notes,
+            "attachment_url": report.attachment_url
         }
         result = self.client.table(self.table).insert(data).execute()
         return self._row_to_entity(result.data[0])
@@ -86,6 +88,7 @@ class SupabaseReportRepository:
             "description": report.description,
             "status": report.status.value,
             "notes": report.notes,
+            "attachment_url": report.attachment_url,
             "resolved_by": report.resolved_by,
             "updated_at": datetime.utcnow().isoformat()
         }

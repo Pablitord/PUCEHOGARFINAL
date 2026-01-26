@@ -18,7 +18,7 @@
             </div>
           </div>
         </div>
-        <form method="POST" action="{{ url_for('tenant.new_report') }}" class="row g-3">
+        <form method="POST" action="{{ url_for('tenant.new_report') }}" class="row g-3" enctype="multipart/form-data">
           {% if departments and departments|length > 1 %}
           <div class="col-12">
             <label for="department_id" class="form-label fw-semibold">Departamento *</label>
@@ -65,6 +65,12 @@
               placeholder="Describe el problema o situación..."
             ></textarea>
             <small class="form-text text-muted">Incluye ubicación dentro del departamento y datos útiles.</small>
+          </div>
+
+          <div class="col-12">
+            <label for="attachment" class="form-label fw-semibold">Adjuntar imagen (opcional)</label>
+            <input class="form-control" type="file" id="attachment" name="attachment" accept="image/*">
+            <small class="form-text text-muted">Formatos permitidos: JPG, PNG, WEBP, GIF. Máx 10MB.</small>
           </div>
 
           <div class="col-12 d-grid gap-2">

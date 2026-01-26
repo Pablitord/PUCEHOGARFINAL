@@ -32,6 +32,15 @@
         </div>
       </div>
 
+      {% if report.attachment_url %}
+      <div class="mb-3">
+        <p class="text-muted mb-1">Adjunto</p>
+        <a href="{{ report.attachment_url }}" target="_blank" class="btn btn-outline-primary btn-sm btn-icon">
+          <i class="bi bi-paperclip"></i> Ver archivo
+        </a>
+      </div>
+      {% endif %}
+
       <form method="POST" class="mb-3">
         <p class="text-muted mb-1">Notas internas</p>
         <textarea name="notes" rows="4" class="form-control mb-2" placeholder="Seguimiento, recordatorios...">{{ report.notes or '' }}</textarea>

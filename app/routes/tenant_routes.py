@@ -294,6 +294,7 @@ def new_report():
     payment_service = deps.get('payment_service')
     department_service = deps.get('department_service')
     notification_service = deps.get('notification_service')
+    storage_repo = deps.get('storage_repo')
 
     payments = payment_service.get_payments_by_tenant(user_id) if payment_service else []
 
@@ -322,6 +323,28 @@ def new_report():
         title = request.form.get("title", "").strip()
         description = request.form.get("description", "").strip()
         selected_department_id = request.form.get("department_id")
+        attachment_url = None
+
+        # Manejar archivo adjunto (opcional)
+        if 'attachment' in request.files:
+            file = request.files['attachment']
+            if file and file.filename:
+                file_content = file.read()
+                if len(file_content) == 0:
+                    flash("El archivo adjunto está vacío", "error")
+                    return render_template("tenant/new_report.html", departments=departments)
+                if len(file_content) > 10 * 1024 * 1024:
+                    flash("El archivo es demasiado grande. Máximo 10MB", "error")
+                    return render_template("tenant/new_report.html", departments=departments)
+                if storage_repo:
+                    try:
+                        attachment_url = storage_repo.upload_file(
+                            file_content=file_content,
+                            file_name=file.filename
+                        )
+                    except Exception as e:
+                        flash(f"No se pudo subir el adjunto: {str(e)}", "error")
+                        return render_template("tenant/new_report.html", departments=departments)
 
         department_id = selected_department_id or (departments[0].id if departments else None)
         
@@ -331,7 +354,8 @@ def new_report():
                 tenant_id=user_id,
                 department_id=department_id,
                 title=title,
-                description=description
+                description=description,
+                attachment_url=attachment_url
             )
             # Notificar a admins sobre nuevo reporte
             if notification_service and auth_service:

@@ -60,6 +60,7 @@ def build_dependencies() -> Dict[str, Any]:
         "department_service": department_service,
         "payment_service": payment_service,
         "report_service": report_service,
-        "notification_service": notification_service
+        "notification_service": notification_service,
+        "storage_repo": storage_repo
     }
 

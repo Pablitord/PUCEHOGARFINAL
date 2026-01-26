@@ -83,6 +83,7 @@ class Report:
     description: str
     status: ReportStatus
     notes: Optional[str] = None
+    attachment_url: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     resolved_by: Optional[str] = None  # ID del admin que resolvió
