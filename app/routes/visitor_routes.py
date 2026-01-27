@@ -93,6 +93,7 @@ def department_detail(department_id: str):
     payment_service = deps.get('payment_service')
     notification_service = deps.get('notification_service')
     auth_service = deps.get('auth_service')
+    email_service = deps.get('email_service')
     
     if department_service:
         department = department_service.get_department_by_id(department_id)
@@ -139,6 +140,7 @@ def pay_department(department_id: str):
     payment_service = deps.get('payment_service')
     notification_service = deps.get('notification_service')
     auth_service = deps.get('auth_service')
+    email_service = deps.get('email_service')
     
     # Verificar que el departamento existe
     department = department_service.get_department_by_id(department_id)
@@ -242,9 +244,11 @@ def pay_department(department_id: str):
             )
             
             if payment:
-                # Notificar a todos los admins
+                tenant_user = auth_service.get_user_by_id(user_id) if auth_service else None
+                # Notificar a todos los admins (evitar duplicados por email repetido)
                 if notification_service and auth_service:
                     admins = auth_service.user_repo.get_admins()
+                    sent_admin_emails = set()
                     for admin in admins:
                         notification_service.create(
                             user_id=admin.id,
@@ -252,6 +256,34 @@ def pay_department(department_id: str):
                             message=f"Se registró un pago para {department.title}",
                             link=url_for("admin.payment_detail", payment_id=payment.id, _external=False),
                             type="payment_created"
+                        )
+                        if email_service and admin.email and admin.email not in sent_admin_emails:
+                            email_service.send_email(
+                                [admin.email],
+                                "Nuevo pago/reserva registrado",
+                                f"Se registró un pago/reserva.\n\n"
+                                f"Departamento: {department.title}\n"
+                                f"Monto: ${amount_val:.2f}\n"
+                                f"Mes: {month}\n"
+                                f"Notas: {notes or 'N/A'}\n"
+                                f"Usuario: {tenant_user.email if tenant_user else 'N/D'}\n\n"
+                                f"Revisa el detalle en el panel de administración."
+                            )
+                            sent_admin_emails.add(admin.email)
+                # Confirmar al usuario que su pago quedó registrado (pendiente)
+                if email_service and auth_service:
+                    tenant = auth_service.get_user_by_id(user_id)
+                    if tenant and tenant.email:
+                        email_service.send_email(
+                            [tenant.email],
+                            "Pago/reserva registrado",
+                            f"Hemos recibido tu pago/reserva.\n\n"
+                            f"Departamento: {department.title}\n"
+                            f"Monto: ${amount_val:.2f}\n"
+                            f"Mes: {month}\n"
+                            f"Notas: {notes or 'N/A'}\n"
+                            f"Estado: Pendiente de revisión\n\n"
+                            f"Gracias por tu pago. Te avisaremos cuando sea aprobado."
                         )
                 flash("Pago registrado correctamente. Está pendiente de revisión.", "success")
                 return redirect(url_for("visitor.department_detail", department_id=department_id))

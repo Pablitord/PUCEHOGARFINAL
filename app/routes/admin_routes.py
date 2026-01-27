@@ -136,6 +136,7 @@ def approve_payment(payment_id: str):
     auth_service = deps.get('auth_service')
     department_service = deps.get('department_service')
     notification_service = deps.get('notification_service')
+    email_service = deps.get('email_service')
     
     try:
         payment = payment_service.get_payment_by_id(payment_id)
@@ -148,6 +149,7 @@ def approve_payment(payment_id: str):
 
         approved = payment_service.approve_payment(payment_id, user_id)
         if approved:
+            department = department_service.get_department_by_id(approved.department_id) if department_service else None
             # Asignar departamento al inquilino si no lo tiene
             if auth_service and department_service:
                 tenant = auth_service.get_user_by_id(approved.tenant_id)
@@ -166,6 +168,17 @@ def approve_payment(payment_id: str):
                         link=url_for("tenant.payment_detail", payment_id=approved.id, _external=False),
                         type="payment_approved"
                     )
+                    if email_service and tenant.email:
+                        email_service.send_email(
+                            [tenant.email],
+                            "Pago aprobado",
+                            f"Tu pago ha sido aprobado.\n\n"
+                            f"Departamento: {department.title if department else 'N/D'}\n"
+                            f"Monto: ${approved.amount:.2f}\n"
+                            f"Mes: {approved.month}\n"
+                            f"Estado: Aprobado\n\n"
+                            f"Puedes ver el detalle en tu panel."
+                        )
             flash("Pago aprobado correctamente", "success")
         else:
             flash("Error al aprobar el pago", "error")
@@ -185,12 +198,15 @@ def reject_payment(payment_id: str):
     payment_service = deps.get('payment_service')
     notification_service = deps.get('notification_service')
     auth_service = deps.get('auth_service')
+    department_service = deps.get('department_service')
+    email_service = deps.get('email_service')
     
     notes = request.form.get("notes", "")
     
     try:
         payment = payment_service.reject_payment(payment_id, user_id, notes)
         if payment:
+            department = department_service.get_department_by_id(payment.department_id) if department_service else None
             # Notificar al inquilino
             if notification_service and auth_service:
                 tenant = auth_service.get_user_by_id(payment.tenant_id)
@@ -202,6 +218,18 @@ def reject_payment(payment_id: str):
                         link=url_for("tenant.payment_detail", payment_id=payment.id, _external=False),
                         type="payment_rejected"
                     )
+                    if email_service and tenant.email:
+                        email_service.send_email(
+                            [tenant.email],
+                            "Pago rechazado",
+                            f"Tu pago ha sido rechazado.\n\n"
+                            f"Departamento: {department.title if department else 'N/D'}\n"
+                            f"Monto: ${payment.amount:.2f}\n"
+                            f"Mes: {payment.month}\n"
+                            f"Motivo: {notes or 'N/A'}\n"
+                            f"Estado: Rechazado\n\n"
+                            f"Revisa el comprobante y vuelve a intentarlo si corresponde."
+                        )
             flash("Pago rechazado", "info")
         else:
             flash("Error al rechazar el pago", "error")
@@ -300,6 +328,7 @@ def resolve_report(report_id: str):
     report_service = deps.get('report_service')
     notification_service = deps.get('notification_service')
     auth_service = deps.get('auth_service')
+    email_service = deps.get('email_service')
     
     try:
         report = report_service.resolve_report(report_id, user_id)
@@ -315,6 +344,15 @@ def resolve_report(report_id: str):
                         link=url_for("tenant.dashboard", _external=False),
                         type="report_resolved"
                     )
+                    if email_service and tenant.email:
+                        email_service.send_email(
+                            [tenant.email],
+                            "Reporte resuelto",
+                            f"Tu reporte ha sido resuelto.\n\n"
+                            f"Título: {report.title}\n"
+                            f"Estado: Resuelto\n\n"
+                            f"Puedes ver el detalle en tu panel."
+                        )
             flash("Reporte resuelto correctamente", "success")
         else:
             flash("Error al resolver el reporte", "error")
@@ -334,6 +372,7 @@ def report_detail(report_id: str):
     auth_service = deps.get('auth_service')
     department_service = deps.get('department_service')
     notification_service = deps.get('notification_service')
+    email_service = deps.get('email_service')
 
     report = report_service.get_report_by_id(report_id) if report_service else None
     if not report:
@@ -356,6 +395,16 @@ def report_detail(report_id: str):
                     link=url_for("tenant.report_detail", report_id=report.id, _external=False),
                     type="report_updated"
                 )
+                if email_service and tenant.email:
+                    email_service.send_email(
+                        [tenant.email],
+                        "Actualización de reporte",
+                        f"Hemos añadido notas a tu reporte.\n\n"
+                        f"Título: {report.title}\n"
+                        f"Estado: {report.status.value}\n"
+                        f"Notas nuevas: {notes or 'N/A'}\n\n"
+                        f"Consulta el detalle en tu panel."
+                    )
             flash("Notas actualizadas", "success")
             return redirect(url_for("admin.report_detail", report_id=report_id))
         else:

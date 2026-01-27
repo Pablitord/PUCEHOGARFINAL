@@ -24,6 +24,7 @@ from .services.department_service import DepartmentService
 from .services.payment_service import PaymentService
 from .services.report_service import ReportService
 from .services.notification_service import NotificationService
+from .services.email_service import EmailService
 
 
 def build_dependencies() -> Dict[str, Any]:
@@ -54,6 +55,7 @@ def build_dependencies() -> Dict[str, Any]:
     payment_service = PaymentService(payment_repo, storage_repo)
     report_service = ReportService(report_repo)
     notification_service = NotificationService(notification_repo)
+    email_service = EmailService()
     
     return {
         "auth_service": auth_service,
@@ -61,6 +63,7 @@ def build_dependencies() -> Dict[str, Any]:
         "payment_service": payment_service,
         "report_service": report_service,
         "notification_service": notification_service,
+        "email_service": email_service,
         "storage_repo": storage_repo
     }
 

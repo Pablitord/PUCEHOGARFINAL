@@ -85,6 +85,7 @@ def new_payment():
     payment_service = deps.get('payment_service')
     department_service = deps.get('department_service')
     notification_service = deps.get('notification_service')
+    email_service = deps.get('email_service')
 
     user = auth_service.get_user_by_id(user_id) if auth_service else None
     payments = payment_service.get_payments_by_tenant(user_id) if payment_service else []
@@ -154,6 +155,7 @@ def new_payment():
             # Notificar a admins
             if payment and notification_service and auth_service:
                 admins = auth_service.user_repo.get_admins()
+                sent_admin_emails = set()
                 for admin in admins:
                     notification_service.create(
                         user_id=admin.id,
@@ -161,6 +163,32 @@ def new_payment():
                         message=f"Se registró un pago para {departments[0].title if departments else 'un departamento'}",
                         link=url_for("admin.payment_detail", payment_id=payment.id, _external=False),
                         type="payment_created"
+                    )
+                    if email_service and admin.email and admin.email not in sent_admin_emails:
+                        email_service.send_email(
+                            [admin.email],
+                            "Nuevo pago/reserva registrado",
+                            f"Se registró un pago/reserva.\n\n"
+                            f"Departamento: {departments[0].title if departments else 'N/D'}\n"
+                            f"Monto: ${float(amount):.2f}\n"
+                            f"Mes: {month}\n"
+                            f"Notas: {notes or 'N/A'}\n"
+                            f"Usuario: {user.email if user else 'N/D'}\n\n"
+                            f"Revisa el detalle en el panel de administración."
+                        )
+                        sent_admin_emails.add(admin.email)
+                # Confirmar al usuario que su pago quedó registrado (pendiente)
+                if email_service and user and user.email:
+                    email_service.send_email(
+                        [user.email],
+                        "Pago/reserva registrado",
+                        f"Hemos recibido tu pago/reserva.\n\n"
+                        f"Departamento: {departments[0].title if departments else 'N/D'}\n"
+                        f"Monto: ${float(amount):.2f}\n"
+                        f"Mes: {month}\n"
+                        f"Notas: {notes or 'N/A'}\n"
+                        f"Estado: Pendiente de revisión\n\n"
+                        f"Gracias por tu pago. Te avisaremos cuando sea aprobado."
                     )
             flash("Pago registrado correctamente. Está pendiente de revisión.", "success")
             return redirect(url_for("tenant.dashboard"))
@@ -294,6 +322,7 @@ def new_report():
     payment_service = deps.get('payment_service')
     department_service = deps.get('department_service')
     notification_service = deps.get('notification_service')
+    email_service = deps.get('email_service')
     storage_repo = deps.get('storage_repo')
 
     payments = payment_service.get_payments_by_tenant(user_id) if payment_service else []
@@ -360,6 +389,7 @@ def new_report():
             # Notificar a admins sobre nuevo reporte
             if notification_service and auth_service:
                 admins = auth_service.user_repo.get_admins()
+                sent_admin_emails = set()
                 for admin in admins:
                     notification_service.create(
                         user_id=admin.id,
@@ -368,6 +398,17 @@ def new_report():
                         link=url_for("admin.reports_list", _external=False),
                         type="report_created"
                     )
+                    if email_service and admin.email and admin.email not in sent_admin_emails:
+                        email_service.send_email(
+                            [admin.email],
+                            "Nuevo reporte recibido",
+                            f"Se creó un nuevo reporte.\n\n"
+                            f"Título: {title}\n"
+                            f"Departamento: {department_id}\n"
+                            f"Descripción: {description}\n\n"
+                            f"Revisa el panel de administración."
+                        )
+                        sent_admin_emails.add(admin.email)
             flash("Reporte creado correctamente", "success")
             return redirect(url_for("tenant.dashboard"))
         except ValueError as e:
