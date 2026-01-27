@@ -2,22 +2,28 @@
 {% block title %}Nuevo Reporte - PUCEHOGAR{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-lg-7">
-    <div class="card app-card shadow-sm">
-      <div class="card-header bg-warning text-dark">
-        <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Crear Nuevo Reporte</h5>
-      </div>
-      <div class="card-body">
-        <div class="alert alert-light border mb-4">
-          <div class="d-flex align-items-start gap-2">
-            <i class="bi bi-info-circle text-warning fs-5"></i>
-            <div>
-              <h6 class="mb-1">Detalle el problema</h6>
-              <p class="mb-0 text-muted small">Usa un título claro y una descripción breve para atenderlo más rápido.</p>
-            </div>
+<div class="container-xxl py-4">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+    <div>
+      <div class="text-muted small">Reportes</div>
+      <h3 class="fw-bold mb-0 page-title"><i class="bi bi-exclamation-triangle"></i> Crear nuevo reporte</h3>
+    </div>
+    <a href="{{ url_for('tenant.dashboard') }}" class="btn btn-outline-secondary btn-sm btn-icon">
+      <i class="bi bi-arrow-left"></i> Volver
+    </a>
+  </div>
+
+  <div class="row g-4 justify-content-center">
+    <div class="col-lg-8">
+      <div class="app-card p-4">
+        <div class="alert alert-light border d-flex align-items-start gap-3 mb-4">
+          <i class="bi bi-info-circle text-warning fs-4"></i>
+          <div>
+            <h6 class="fw-semibold mb-1">Describe el problema con claridad</h6>
+            <p class="mb-0 text-muted small">Incluye ubicación dentro del departamento, tiempo del incidente y cualquier detalle útil.</p>
           </div>
         </div>
+
         <form method="POST" action="{{ url_for('tenant.new_report') }}" class="row g-3" enctype="multipart/form-data">
           {% if departments and departments|length > 1 %}
           <div class="col-12">
@@ -52,6 +58,7 @@
               required
               placeholder="Ej: Fuga de agua en el baño"
             >
+            <small class="form-text text-muted">Un resumen breve para identificar el problema rápidamente.</small>
           </div>
 
           <div class="col-12">
@@ -64,7 +71,7 @@
               required
               placeholder="Describe el problema o situación..."
             ></textarea>
-            <small class="form-text text-muted">Incluye ubicación dentro del departamento y datos útiles.</small>
+            <small class="form-text text-muted">Incluye ubicación, cuándo sucedió y cualquier indicio relevante.</small>
           </div>
 
           <div class="col-12">
@@ -73,9 +80,9 @@
             <small class="form-text text-muted">Formatos permitidos: JPG, PNG, WEBP, GIF. Máx 10MB.</small>
           </div>
 
-          <div class="col-12 d-grid gap-2">
-            <button type="submit" class="btn btn-warning btn-icon">
-              <i class="bi bi-check-circle"></i> Crear Reporte
+          <div class="col-12 d-flex flex-wrap gap-2">
+            <button type="submit" class="btn btn-primary btn-icon">
+              <i class="bi bi-send"></i> Enviar reporte
             </button>
             <a href="{{ url_for('tenant.dashboard') }}" class="btn btn-outline-secondary btn-icon">
               <i class="bi bi-x-circle"></i> Cancelar
