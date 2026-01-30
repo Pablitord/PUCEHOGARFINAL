@@ -62,9 +62,10 @@
               name="amount" 
               value="{{ department.price }}"
               required
+              readonly
             >
           </div>
-          <small class="form-text text-muted" id="amount_hint">Puedes ajustar el monto; mínimo: precio prorrateado.</small>
+          <small class="form-text text-muted" id="amount_hint">El monto se calcula automáticamente según el precio mensual o el prorrateo de reserva.</small>
         </div>
 
         <div class="col-md-6">
@@ -129,13 +130,18 @@
     const amountHint = document.getElementById('amount_hint');
     const monthInput = document.getElementById('month');
 
-    // Limitar selección de mes: actual y dos meses atrás
+    // Limitar selección de mes: hasta 1 mes después y hasta 2 meses atrás
     if (monthInput) {
       const today = new Date();
       const year = today.getFullYear();
       const month = today.getMonth(); // 0-based
       const pad = (v) => String(v).padStart(2, '0');
-      const max = `${year}-${pad(month + 1)}`;
+      // Máximo: 1 mes después
+      let forwardMonth = month + 1;
+      let forwardYear = year;
+      if (forwardMonth > 11) { forwardMonth = 0; forwardYear += 1; }
+      const max = `${forwardYear}-${pad(forwardMonth + 1)}`;
+      // Mínimo: 2 meses atrás
       let backMonth = month - 2;
       let backYear = year;
       if (backMonth < 0) { backMonth += 12; backYear -= 1; }
@@ -151,7 +157,7 @@
         amountInput.value = price.toFixed(2);
         amountInput.classList.remove('is-auto');
         hint.textContent = 'Si eliges fechas, prorratearemos: (precio mensual / 30) * días reservados. Máx. 30 días.';
-        amountHint.textContent = 'Puedes ajustar el monto; mínimo: precio prorrateado.';
+        amountHint.textContent = 'El monto se calcula automáticamente según el precio mensual o el prorrateo de reserva.';
         return;
       }
       if (!startVal || !endVal) {

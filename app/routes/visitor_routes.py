@@ -157,7 +157,8 @@ def pay_department(department_id: str):
             today = date.today()
             max_key = _month_key(today)
             min_key = max_key - 2  # hasta dos meses atrás
-            return min_key <= _month_key(m_date) <= max_key
+            max_allowed = max_key + 1  # hasta un mes después
+            return min_key <= _month_key(m_date) <= max_allowed
         except Exception:
             return False
 
@@ -227,9 +228,9 @@ def pay_department(department_id: str):
                 flash(f"El monto no puede ser menor a ${expected_amount:.2f}", "error")
                 return render_template("visitor/pay_department.html", department=department)
 
-            # Validar mes de pago (solo mes actual o hasta 2 meses atrás)
+            # Validar mes de pago (hasta 1 mes después y hasta 2 meses atrás)
             if not month or not _is_month_allowed(month):
-                flash("El mes de pago debe ser el mes actual o hasta dos meses atrás", "error")
+                flash("El mes de pago debe estar entre 2 meses atrás y 1 mes después del mes actual", "error")
                 return render_template("visitor/pay_department.html", department=department)
             
             # Crear pago con comprobante

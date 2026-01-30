@@ -135,6 +135,16 @@ main.container-xxl {
   background: #f0f6ff;
 }
 
+.form-control[readonly] {
+  background-color: #f8f9fa;
+  cursor: not-allowed;
+  opacity: 1;
+}
+.form-control[readonly]:focus {
+  border-color: #ced4da;
+  box-shadow: none;
+}
+
 /* ------------------------------------------
    Tables y listas
 ------------------------------------------- */
