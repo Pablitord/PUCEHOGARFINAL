@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from ..domain.entities import Department
 from ..domain.enums import DepartmentStatus
-from ..repositories.interfaces import DepartmentRepository, StorageRepository
+from ..repositories.interfaces import DepartmentRepository, StorageRepository, UserRepository
 
 
 class DepartmentService:
@@ -11,10 +11,12 @@ class DepartmentService:
     def __init__(
         self,
         department_repo: DepartmentRepository,
-        storage_repo: Optional[StorageRepository] = None
+        storage_repo: Optional[StorageRepository] = None,
+        user_repo: Optional[UserRepository] = None
     ):
         self.department_repo = department_repo
         self.storage_repo = storage_repo
+        self.user_repo = user_repo
     
     def get_all_departments(
         self,
@@ -55,6 +57,15 @@ class DepartmentService:
         if not department.title or not department.address:
             raise ValueError("Título y dirección son obligatorios")
         
+        # Si el departamento cambia de "occupied" a "available", desasignar usuarios
+        old_dept = self.department_repo.get_by_id(department.id)
+        if old_dept and old_dept.status == DepartmentStatus.OCCUPIED and department.status == DepartmentStatus.AVAILABLE:
+            if self.user_repo:
+                unassigned_count = self.user_repo.unassign_department(department.id)
+                if unassigned_count > 0:
+                    # Log opcional: print(f"Desasignados {unassigned_count} usuarios del departamento {department.id}")
+                    pass
+        
         return self.department_repo.update(department)
     
     def delete_department(self, department_id: str) -> bool:
@@ -76,10 +87,17 @@ class DepartmentService:
         return self.department_repo.update(dept)
     
     def mark_as_available(self, department_id: str) -> Optional[Department]:
-        """Marca un departamento como disponible"""
+        """Marca un departamento como disponible y desasigna a los usuarios"""
         dept = self.department_repo.get_by_id(department_id)
         if not dept:
             return None
+        
+        # Desasignar usuarios antes de cambiar el estado
+        if self.user_repo:
+            unassigned_count = self.user_repo.unassign_department(department_id)
+            if unassigned_count > 0:
+                # Log opcional: print(f"Desasignados {unassigned_count} usuarios del departamento {department_id}")
+                pass
         
         dept.status = DepartmentStatus.AVAILABLE
         return self.department_repo.update(dept)

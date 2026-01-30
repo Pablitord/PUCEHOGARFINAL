@@ -40,14 +40,21 @@
                   </span>
                 </td>
                 <td>
-                  <a href="{{ url_for('admin.edit_department', department_id=dept.id) }}" class="btn btn-sm btn-outline-primary">
-                    <i class="bi bi-pencil"></i> Editar
-                  </a>
-                  <form method="POST" action="{{ url_for('admin.delete_department', department_id=dept.id) }}" class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar este departamento?');">
-                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                      <i class="bi bi-trash"></i> Eliminar
-                    </button>
-                  </form>
+                  <div class="btn-group" role="group">
+                    <a href="{{ url_for('admin.edit_department', department_id=dept.id) }}" class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-pencil"></i> Editar
+                    </a>
+                    {% if dept.status.value == 'occupied' %}
+                      <button type="button" class="btn btn-sm btn-outline-warning" title="Desasignar departamento" data-bs-toggle="modal" data-bs-target="#unassignModal{{ loop.index }}" data-dept-id="{{ dept.id }}" data-dept-title="{{ dept.title }}">
+                        <i class="bi bi-person-x"></i> Desasignar
+                      </button>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('admin.delete_department', department_id=dept.id) }}" class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar este departamento?');">
+                      <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i> Eliminar
+                      </button>
+                    </form>
+                  </div>
                 </td>
               </tr>
             {% endfor %}
@@ -61,5 +68,55 @@
     {% endif %}
   </div>
 </div>
+
+<!-- Modales de desasignación -->
+{% for dept in departments %}
+  {% if dept.status.value == 'occupied' %}
+  <div class="modal fade" id="unassignModal{{ loop.index }}" tabindex="-1" aria-labelledby="unassignModalLabel{{ loop.index }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content app-card border-0">
+        <div class="modal-header border-bottom bg-light">
+          <h5 class="modal-title fw-bold" id="unassignModalLabel{{ loop.index }}">
+            <i class="bi bi-person-x text-warning"></i> Desasignar Departamento
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <form method="POST" action="{{ url_for('admin.unassign_department', department_id=dept.id) }}" id="unassignForm{{ loop.index }}">
+          <div class="modal-body">
+            <div class="alert alert-warning mb-3">
+              <i class="bi bi-exclamation-triangle"></i> 
+              <strong>Departamento:</strong> {{ dept.title }}<br>
+              <small>Se desasignará este departamento de todos los usuarios que lo tengan asignado. Esto no cambiará el estado del departamento.</small>
+            </div>
+            
+            <div class="mb-3">
+              <label for="unassignReason{{ loop.index }}" class="form-label fw-semibold">
+                Motivo de desasignación *
+              </label>
+              <textarea 
+                class="form-control" 
+                id="unassignReason{{ loop.index }}" 
+                name="reason" 
+                rows="4" 
+                required
+                placeholder="Ej: Se cumplió el plazo de pago, Se acabó el tiempo de reserva, etc."
+              ></textarea>
+              <small class="form-text text-muted">Este mensaje se enviará a los usuarios afectados por notificación y correo electrónico.</small>
+            </div>
+          </div>
+          <div class="modal-footer border-top">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+              <i class="bi bi-x-circle"></i> Cancelar
+            </button>
+            <button type="submit" class="btn btn-warning btn-icon">
+              <i class="bi bi-check-circle"></i> Confirmar Desasignación
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+{% endfor %}
 {% endblock %}
 

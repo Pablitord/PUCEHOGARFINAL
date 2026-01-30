@@ -54,7 +54,7 @@ def build_dependencies() -> Dict[str, Any]:
     
     # Servicios (inyección de dependencias)
     auth_service = AuthService(user_repo)
-    department_service = DepartmentService(department_repo, storage_repo)
+    department_service = DepartmentService(department_repo, storage_repo, user_repo)
     payment_service = PaymentService(payment_repo, storage_repo)
     report_service = ReportService(report_repo)
     notification_service = NotificationService(notification_repo)

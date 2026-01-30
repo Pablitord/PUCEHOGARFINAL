@@ -106,18 +106,23 @@ def department_detail(department_id: str):
         flash("Error al cargar el departamento", "error")
         return redirect(url_for("visitor.home"))
     
-    # Verificar si el usuario está autenticado y si ya tiene un pago para este depto
+    # Verificar si el usuario está autenticado y si tiene el departamento asignado
     is_authenticated = 'user_id' in session
     user_id = session.get('user_id') if is_authenticated else None
     existing_payment_status = None
     user_has_department = False
-    if is_authenticated and payment_service:
-        payments = payment_service.get_payments_by_tenant(user_id)
-        for p in payments:
-            if p.department_id == department_id and p.status.value == 'approved':
-                existing_payment_status = p.status.value
-                user_has_department = True
-                break
+    if is_authenticated and auth_service:
+        # Verificar si el usuario tiene el departamento asignado (department_id)
+        user = auth_service.get_user_by_id(user_id)
+        if user and user.department_id == department_id:
+            user_has_department = True
+            # Verificar el estado del pago más reciente aprobado para este departamento
+            if payment_service:
+                payments = payment_service.get_payments_by_tenant(user_id)
+                for p in payments:
+                    if p.department_id == department_id and p.status.value == 'approved':
+                        existing_payment_status = p.status.value
+                        break
     
     # Obtener calificaciones del departamento
     ratings = []

@@ -621,6 +621,80 @@ def delete_department(department_id: str):
     return redirect(url_for("admin.departments_list"))
 
 
+@admin_bp.route("/department/<department_id>/unassign", methods=["POST"])
+@require_auth
+@require_role(UserRole.ADMIN)
+def unassign_department(department_id: str):
+    """Desasignar un departamento de todos los usuarios que lo tengan asignado"""
+    deps = get_services()
+    auth_service = deps.get('auth_service')
+    department_service = deps.get('department_service')
+    notification_service = deps.get('notification_service')
+    email_service = deps.get('email_service')
+    
+    # Obtener el motivo de desasignación
+    reason = request.form.get("reason", "").strip()
+    if not reason:
+        flash("Debes proporcionar un motivo para la desasignación", "error")
+        return redirect(url_for("admin.departments_list"))
+    
+    # Verificar que el departamento existe
+    department = None
+    if department_service:
+        department = department_service.get_department_by_id(department_id)
+        if not department:
+            flash("Departamento no encontrado", "error")
+            return redirect(url_for("admin.departments_list"))
+    
+    try:
+        if auth_service:
+            # Obtener usuarios afectados ANTES de desasignar
+            affected_users = auth_service.user_repo.get_tenants_by_department(department_id)
+            
+            # Desasignar el departamento
+            unassigned_count = auth_service.unassign_department(department_id)
+            
+            if unassigned_count > 0:
+                # Enviar notificaciones y emails a los usuarios afectados
+                for user in affected_users:
+                    # Notificación in-app
+                    if notification_service:
+                        notification_service.create(
+                            user_id=user.id,
+                            title="Departamento desasignado",
+                            message=f"El departamento {department.title if department else 'N/D'} ha sido desasignado. Motivo: {reason}",
+                            link=url_for("tenant.dashboard", _external=False),
+                            type="department_unassigned"
+                        )
+                    
+                    # Email
+                    if email_service and user.email:
+                        email_body = (
+                            f"Hola {user.full_name or user.email},\n\n"
+                            f"Te informamos que el departamento '{department.title if department else 'N/D'}' "
+                            f"ha sido desasignado de tu cuenta.\n\n"
+                            f"Motivo: {reason}\n\n"
+                            f"Si tienes alguna pregunta o necesitas más información, no dudes en contactarnos.\n\n"
+                            f"Saludos,\n"
+                            f"Equipo PUCEHOGAR"
+                        )
+                        email_service.send_email(
+                            [user.email],
+                            "Departamento desasignado",
+                            email_body
+                        )
+                
+                flash(f"Departamento desasignado de {unassigned_count} usuario(s). Se enviaron notificaciones y correos.", "success")
+            else:
+                flash("No había usuarios asignados a este departamento", "info")
+        else:
+            flash("Error al desasignar el departamento", "error")
+    except Exception as e:
+        flash(f"Error: {str(e)}", "error")
+    
+    return redirect(url_for("admin.departments_list"))
+
+
 @admin_bp.route("/create-admin", methods=["GET", "POST"])
 @require_auth
 @require_role(UserRole.ADMIN)

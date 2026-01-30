@@ -35,6 +35,10 @@ class UserRepository(Protocol):
     def has_admins(self) -> bool:
         """Retorna True si existe al menos un admin"""
         ...
+    
+    def unassign_department(self, department_id: str) -> int:
+        """Desasigna un departamento de todos los usuarios que lo tengan asignado. Retorna el número de usuarios desasignados."""
+        ...
 
 
 class DepartmentRepository(Protocol):

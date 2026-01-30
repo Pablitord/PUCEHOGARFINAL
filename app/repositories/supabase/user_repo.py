@@ -108,4 +108,20 @@ class SupabaseUserRepository:
             return [self._row_to_entity(row) for row in result.data]
         except Exception:
             return []
+    
+    def unassign_department(self, department_id: str) -> int:
+        """Desasigna un departamento de todos los usuarios que lo tengan asignado. Retorna el número de usuarios desasignados."""
+        try:
+            # Obtener todos los usuarios con este departamento asignado
+            result = self.client.table(self.table).select("id").eq("department_id", department_id).execute()
+            user_ids = [row["id"] for row in result.data]
+            
+            if not user_ids:
+                return 0
+            
+            # Actualizar todos los usuarios para desasignar el departamento
+            self.client.table(self.table).update({"department_id": None}).in_("id", user_ids).execute()
+            return len(user_ids)
+        except Exception:
+            return 0
 

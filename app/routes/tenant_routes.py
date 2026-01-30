@@ -48,12 +48,11 @@ def dashboard():
     reports = sorted(reports, key=lambda r: _sort_dt(getattr(r, "created_at", None)), reverse=True)
 
     def _tenant_departments(user_obj, payment_list):
+        """Obtiene departamentos asignados al usuario. Solo considera department_id del usuario, no pagos históricos."""
         ids = set()
+        # Solo considerar el department_id del usuario (asignación activa)
         if user_obj and user_obj.department_id:
             ids.add(user_obj.department_id)
-        for p in payment_list:
-            if hasattr(p, "status") and p.status.value == PaymentStatus.APPROVED.value:
-                ids.add(p.department_id)
         departments = []
         if department_service:
             for dep_id in ids:
@@ -91,12 +90,11 @@ def new_payment():
     payments = payment_service.get_payments_by_tenant(user_id) if payment_service else []
 
     def _tenant_departments(user_obj, payment_list):
+        """Obtiene departamentos asignados al usuario. Solo considera department_id del usuario, no pagos históricos."""
         ids = set()
+        # Solo considerar el department_id del usuario (asignación activa)
         if user_obj and user_obj.department_id:
             ids.add(user_obj.department_id)
-        for p in payment_list:
-            if hasattr(p, "status") and p.status.value == PaymentStatus.APPROVED.value:
-                ids.add(p.department_id)
         departments = []
         if department_service:
             for dep_id in ids:
@@ -328,12 +326,11 @@ def new_report():
     payments = payment_service.get_payments_by_tenant(user_id) if payment_service else []
 
     def _tenant_departments(user_obj, payment_list):
+        """Obtiene departamentos asignados al usuario. Solo considera department_id del usuario, no pagos históricos."""
         ids = set()
+        # Solo considerar el department_id del usuario (asignación activa)
         if user_obj and user_obj.department_id:
             ids.add(user_obj.department_id)
-        for p in payment_list:
-            if hasattr(p, "status") and p.status.value == PaymentStatus.APPROVED.value:
-                ids.add(p.department_id)
         departments = []
         if department_service:
             for dep_id in ids:

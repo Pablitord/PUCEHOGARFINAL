@@ -83,4 +83,8 @@ class AuthService:
         if self.is_tenant(user):
             return user.department_id == department_id
         return False
+    
+    def unassign_department(self, department_id: str) -> int:
+        """Desasigna un departamento de todos los usuarios que lo tengan asignado. Retorna el número de usuarios desasignados."""
+        return self.user_repo.unassign_department(department_id)
 
