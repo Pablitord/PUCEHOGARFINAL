@@ -58,6 +58,18 @@ CREATE TABLE IF NOT EXISTS reports (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Tabla de calificaciones
+CREATE TABLE IF NOT EXISTS ratings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    department_id UUID NOT NULL REFERENCES departments(id) ON DELETE CASCADE,
+    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(tenant_id, department_id) -- Un usuario solo puede calificar un departamento una vez
+);
+
 -- Índices para mejorar rendimiento
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_department ON users(department_id);
@@ -68,6 +80,8 @@ CREATE INDEX IF NOT EXISTS idx_payments_month ON payments(month);
 CREATE INDEX IF NOT EXISTS idx_reports_tenant ON reports(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_reports_status ON reports(status);
 CREATE INDEX IF NOT EXISTS idx_departments_status ON departments(status);
+CREATE INDEX IF NOT EXISTS idx_ratings_department ON ratings(department_id);
+CREATE INDEX IF NOT EXISTS idx_ratings_tenant ON ratings(tenant_id);
 
 -- Función para actualizar updated_at automáticamente
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -89,6 +103,9 @@ CREATE TRIGGER update_payments_updated_at BEFORE UPDATE ON payments
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_reports_updated_at BEFORE UPDATE ON reports
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_ratings_updated_at BEFORE UPDATE ON ratings
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Datos de ejemplo (opcional - comentar si no los necesitas)

@@ -88,3 +88,15 @@ class Report:
     updated_at: Optional[datetime] = None
     resolved_by: Optional[str] = None  # ID del admin que resolvió
 
+
+@dataclass
+class Rating:
+    """Entidad Calificación"""
+    id: str
+    tenant_id: str
+    department_id: str
+    rating: int  # 1-5 estrellas
+    comment: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+

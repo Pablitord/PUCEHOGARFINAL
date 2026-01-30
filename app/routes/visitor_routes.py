@@ -91,6 +91,7 @@ def department_detail(department_id: str):
     deps = get_services()
     department_service = deps.get('department_service')
     payment_service = deps.get('payment_service')
+    rating_service = deps.get('rating_service')
     notification_service = deps.get('notification_service')
     auth_service = deps.get('auth_service')
     email_service = deps.get('email_service')
@@ -109,19 +110,38 @@ def department_detail(department_id: str):
     is_authenticated = 'user_id' in session
     user_id = session.get('user_id') if is_authenticated else None
     existing_payment_status = None
+    user_has_department = False
     if is_authenticated and payment_service:
         payments = payment_service.get_payments_by_tenant(user_id)
         for p in payments:
-            if p.department_id == department_id:
+            if p.department_id == department_id and p.status.value == 'approved':
                 existing_payment_status = p.status.value
+                user_has_department = True
                 break
+    
+    # Obtener calificaciones del departamento
+    ratings = []
+    average_rating = None
+    rating_count = 0
+    user_rating = None
+    if rating_service:
+        ratings = rating_service.get_department_ratings(department_id)
+        average_rating = rating_service.get_average_rating(department_id)
+        rating_count = rating_service.get_rating_count(department_id)
+        if user_id:
+            user_rating = rating_service.get_user_rating(user_id, department_id)
     
     return render_template(
         "visitor/department_detail.html",
         department=department,
         is_authenticated=is_authenticated,
         user_id=user_id,
-        existing_payment_status=existing_payment_status
+        existing_payment_status=existing_payment_status,
+        user_has_department=user_has_department,
+        ratings=ratings,
+        average_rating=average_rating,
+        rating_count=rating_count,
+        user_rating=user_rating
     )
 
 
@@ -296,3 +316,72 @@ def pay_department(department_id: str):
             flash(f"Error: {str(e)}", "error")
     
     return render_template("visitor/pay_department.html", department=department)
+
+
+@visitor_bp.route("/department/<department_id>/rate", methods=["POST"])
+@require_auth
+def rate_department(department_id: str):
+    """Crear o actualizar calificación de un departamento"""
+    deps = get_services()
+    rating_service = deps.get('rating_service')
+    payment_service = deps.get('payment_service')
+    department_service = deps.get('department_service')
+    
+    if not rating_service:
+        flash("Error al procesar la calificación", "error")
+        return redirect(url_for("visitor.department_detail", department_id=department_id))
+    
+    user_id = session.get('user_id')
+    if not user_id:
+        flash("Debes iniciar sesión para calificar", "error")
+        return redirect(url_for("visitor.department_detail", department_id=department_id))
+    
+    # Verificar que el usuario tenga el departamento asignado (pago aprobado)
+    if payment_service:
+        payments = payment_service.get_payments_by_tenant(user_id)
+        has_approved_payment = False
+        for p in payments:
+            if p.department_id == department_id and p.status.value == 'approved':
+                has_approved_payment = True
+                break
+        
+        if not has_approved_payment:
+            flash("Solo puedes calificar departamentos que tengas asignados", "error")
+            return redirect(url_for("visitor.department_detail", department_id=department_id))
+    
+    # Verificar que el departamento existe
+    if department_service:
+        department = department_service.get_department_by_id(department_id)
+        if not department:
+            flash("Departamento no encontrado", "error")
+            return redirect(url_for("visitor.home"))
+    
+    # Obtener datos del formulario
+    rating_value = request.form.get("rating")
+    comment = request.form.get("comment", "").strip()
+    
+    if not rating_value:
+        flash("Debes seleccionar una calificación", "error")
+        return redirect(url_for("visitor.department_detail", department_id=department_id))
+    
+    try:
+        rating_int = int(rating_value)
+        if rating_int < 1 or rating_int > 5:
+            flash("La calificación debe estar entre 1 y 5", "error")
+            return redirect(url_for("visitor.department_detail", department_id=department_id))
+        
+        # Crear o actualizar calificación
+        rating_service.create_rating(
+            tenant_id=user_id,
+            department_id=department_id,
+            rating=rating_int,
+            comment=comment if comment else None
+        )
+        
+        flash("Calificación guardada exitosamente", "success")
+    except ValueError as e:
+        flash(str(e), "error")
+    except Exception as e:
+        flash(f"Error al guardar la calificación: {str(e)}", "error")
+    
+    return redirect(url_for("visitor.department_detail", department_id=department_id))

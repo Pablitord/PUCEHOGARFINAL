@@ -1,7 +1,7 @@
 from typing import Protocol, Optional, List
 from datetime import datetime
 
-from ..domain.entities import Department, Payment, Report, User, Notification
+from ..domain.entities import Department, Payment, Report, User, Notification, Rating
 from ..domain.enums import DepartmentStatus, PaymentStatus, ReportStatus
 
 
@@ -173,5 +173,41 @@ class StorageRepository(Protocol):
     
     def delete_file(self, file_path: str) -> bool:
         """Elimina un archivo"""
+        ...
+
+
+class RatingRepository(Protocol):
+    """Interface para repositorio de calificaciones"""
+    
+    def get_by_id(self, rating_id: str) -> Optional[Rating]:
+        """Obtiene una calificación por ID"""
+        ...
+    
+    def get_by_department(self, department_id: str) -> List[Rating]:
+        """Obtiene todas las calificaciones de un departamento"""
+        ...
+    
+    def get_by_tenant_and_department(self, tenant_id: str, department_id: str) -> Optional[Rating]:
+        """Obtiene la calificación de un tenant para un departamento específico"""
+        ...
+    
+    def get_average_rating(self, department_id: str) -> Optional[float]:
+        """Obtiene el promedio de calificaciones de un departamento"""
+        ...
+    
+    def get_rating_count(self, department_id: str) -> int:
+        """Obtiene el número de calificaciones de un departamento"""
+        ...
+    
+    def create(self, rating: Rating) -> Rating:
+        """Crea una nueva calificación"""
+        ...
+    
+    def update(self, rating: Rating) -> Rating:
+        """Actualiza una calificación existente"""
+        ...
+    
+    def delete(self, rating_id: str) -> bool:
+        """Elimina una calificación"""
         ...
 

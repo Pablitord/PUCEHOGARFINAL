@@ -98,6 +98,133 @@
           {% endif %}
         </div>
       </div>
+
+      <!-- Sección de Calificaciones -->
+      <div class="card app-card mb-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-semibold mb-0">
+              <i class="bi bi-star-fill text-warning"></i> Calificaciones
+            </h5>
+            {% if average_rating %}
+              <div class="text-end">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="fs-4 fw-bold">{{ "%.1f"|format(average_rating) }}</span>
+                  <div>
+                    {% set avg_int = average_rating|int %}
+                    {% set avg_round = average_rating|round %}
+                    {% for i in range(1, 6) %}
+                      {% if i <= avg_int %}
+                        <i class="bi bi-star-fill text-warning"></i>
+                      {% elif i == avg_round and average_rating % 1 >= 0.5 %}
+                        <i class="bi bi-star-half text-warning"></i>
+                      {% else %}
+                        <i class="bi bi-star text-muted"></i>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                </div>
+                <small class="text-muted">{{ rating_count }} calificación{{ 'es' if rating_count != 1 else '' }}</small>
+              </div>
+            {% else %}
+              <span class="text-muted">Sin calificaciones aún</span>
+            {% endif %}
+          </div>
+
+          <!-- Formulario para calificar (solo si el usuario tiene el departamento asignado) -->
+          {% if is_authenticated and user_has_department %}
+            <div class="border rounded-3 p-3 mb-4 bg-light">
+              <h6 class="fw-semibold mb-3">
+                {% if user_rating %}
+                  <i class="bi bi-pencil"></i> Actualizar tu calificación
+                {% else %}
+                  <i class="bi bi-star"></i> Califica este departamento
+                {% endif %}
+              </h6>
+              <form method="POST" action="{{ url_for('visitor.rate_department', department_id=department.id) }}">
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Calificación *</label>
+                  <div class="d-flex gap-2 align-items-center">
+                    {% for i in range(1, 6) %}
+                      <div class="form-check form-check-inline">
+                        <input 
+                          class="form-check-input" 
+                          type="radio" 
+                          name="rating" 
+                          id="rating_{{ i }}" 
+                          value="{{ i }}"
+                          {% if user_rating and user_rating.rating == i %}checked{% endif %}
+                          required
+                        >
+                        <label class="form-check-label" for="rating_{{ i }}">
+                          <i class="bi bi-star-fill text-warning"></i> {{ i }}
+                        </label>
+                      </div>
+                    {% endfor %}
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label for="comment" class="form-label fw-semibold">Comentario (opcional)</label>
+                  <textarea 
+                    class="form-control" 
+                    id="comment" 
+                    name="comment" 
+                    rows="3"
+                    placeholder="Comparte tu experiencia con este departamento..."
+                  >{% if user_rating %}{{ user_rating.comment or '' }}{% endif %}</textarea>
+                </div>
+                <button type="submit" class="btn btn-warning btn-icon">
+                  <i class="bi bi-check-circle"></i> {% if user_rating %}Actualizar{% else %}Enviar{% endif %} Calificación
+                </button>
+              </form>
+            </div>
+          {% elif is_authenticated and not user_has_department %}
+            <div class="alert alert-info mb-4">
+              <i class="bi bi-info-circle"></i> Solo puedes calificar departamentos que tengas asignados.
+            </div>
+          {% endif %}
+
+          <!-- Lista de calificaciones -->
+          {% if ratings %}
+            <div>
+              <h6 class="fw-semibold mb-3">Opiniones de usuarios</h6>
+              <div class="d-flex flex-column gap-3">
+                {% for rating in ratings %}
+                  <div class="border rounded-3 p-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                          {% for i in range(5) %}
+                            {% if i < rating.rating %}
+                              <i class="bi bi-star-fill text-warning"></i>
+                            {% else %}
+                              <i class="bi bi-star text-muted"></i>
+                            {% endif %}
+                          {% endfor %}
+                          <span class="fw-semibold">{{ rating.rating }}/5</span>
+                        </div>
+                        {% if rating.comment %}
+                          <p class="mb-0 text-muted">{{ rating.comment }}</p>
+                        {% else %}
+                          <p class="mb-0 text-muted fst-italic">Sin comentario</p>
+                        {% endif %}
+                      </div>
+                      {% if rating.created_at %}
+                        <small class="text-muted">{{ rating.created_at.strftime('%d/%m/%Y') }}</small>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          {% else %}
+            <div class="text-center py-4 text-muted">
+              <i class="bi bi-star fs-3"></i>
+              <p class="mb-0 mt-2">Aún no hay calificaciones para este departamento</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
     </div>
 
     <div class="col-lg-4">
