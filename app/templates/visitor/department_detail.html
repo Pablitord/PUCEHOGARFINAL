@@ -8,7 +8,9 @@
       <div class="card app-card mb-3">
         <div class="card-body p-0">
           {% set images = [department.image_url, department.image_url_2, department.image_url_3] | select | list %}
-          {% if images|length > 0 %}
+          {% if images|length == 1 %}
+            <img src="{{ images[0] }}" class="d-block w-100 img-cover rounded" style="max-height: 520px;" alt="{{ department.title }}">
+          {% elif images|length > 1 %}
             <div id="deptCarousel" class="carousel slide rounded overflow-hidden">
               <div class="carousel-inner">
                 {% for img in images %}
@@ -17,16 +19,14 @@
                   </div>
                 {% endfor %}
               </div>
-              {% if images|length > 1 %}
-                <button class="carousel-control-prev" type="button" data-bs-target="#deptCarousel" data-bs-slide="prev">
-                  <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                  <span class="visually-hidden">Anterior</span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#deptCarousel" data-bs-slide="next">
-                  <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                  <span class="visually-hidden">Siguiente</span>
-                </button>
-              {% endif %}
+              <button class="carousel-control-prev" type="button" data-bs-target="#deptCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Anterior</span>
+              </button>
+              <button class="carousel-control-next" type="button" data-bs-target="#deptCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Siguiente</span>
+              </button>
             </div>
           {% else %}
             <div class="placeholder-gradient rounded d-flex align-items-center justify-content-center" style="height: 420px;">

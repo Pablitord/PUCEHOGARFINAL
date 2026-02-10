@@ -1,3 +1,4 @@
+import os
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, make_response
 from datetime import datetime
 from fpdf import FPDF
@@ -8,6 +9,33 @@ from ..domain.entities import Department
 from ..factories.user_factory import UserFactory
 
 admin_bp = Blueprint("admin", __name__)
+
+
+ALLOWED_IMAGE_MIMES = {"image/jpeg", "image/png"}
+ALLOWED_IMAGE_EXTS = {".jpg", ".jpeg", ".png"}
+MAX_IMAGE_SIZE = 5 * 1024 * 1024
+
+
+def read_valid_image(file, label: str):
+    """Lee y valida imagen (jpg/png). Retorna (bytes|None, error|None)."""
+    if not file or not file.filename:
+        return None, None
+
+    file_content = file.read()
+    if len(file_content) == 0:
+        return None, f"La {label} está vacía"
+
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ALLOWED_IMAGE_EXTS:
+        return None, f"La {label} debe ser JPG o PNG"
+
+    if file.mimetype and file.mimetype not in ALLOWED_IMAGE_MIMES:
+        return None, f"La {label} debe ser JPG o PNG"
+
+    if len(file_content) > MAX_IMAGE_SIZE:
+        return None, f"La {label} es demasiado grande. Máximo 5MB"
+
+    return file_content, None
 
 
 def get_services():
@@ -449,8 +477,8 @@ def new_department():
             parking = bool(request.form.get("parking"))
             furnished = bool(request.form.get("furnished"))
             allow_pets = bool(request.form.get("allow_pets"))
-            image_url_2 = request.form.get("image_url_2", "").strip() or None
-            image_url_3 = request.form.get("image_url_3", "").strip() or None
+            image_url_2 = None
+            image_url_3 = None
 
             def build_department(image_url_val=None):
                 return Department(
@@ -474,49 +502,61 @@ def new_department():
                     allow_pets=allow_pets
                 )
 
-            image_url = None
-            
-            # Si se subió una imagen
-            if 'image' in request.files:
-                file = request.files['image']
-                if file and file.filename:
-                    file_content = file.read()
-                    if len(file_content) > 0:
-                        # Validar tamaño (máx 5MB para imágenes)
-                        max_size = 5 * 1024 * 1024
-                        if len(file_content) > max_size:
-                            flash("La imagen es demasiado grande. Máximo 5MB", "error")
-                            return render_template("admin/new_department.html")
-                        
-                        # Crear departamento primero (sin imagen)
-                        department = build_department()
-                        
-                        department = department_service.create_department(department)
-                        
-                        # Subir imagen después de crear el departamento
-                        try:
-                            department = department_service.upload_department_image(
-                                department_id=department.id,
-                                file_content=file_content,
-                                file_name=file.filename
-                            )
-                        except Exception as img_error:
-                            flash(f"Departamento creado pero error al subir imagen: {str(img_error)}", "warning")
-                    else:
-                        # Usar URL si se proporcionó
-                        image_url = request.form.get("image_url", "").strip() or None
-                        department = build_department(image_url)
-                        department = department_service.create_department(department)
-                else:
-                    # Usar URL si se proporcionó
-                    image_url = request.form.get("image_url", "").strip() or None
-                    department = build_department(image_url)
-                    department = department_service.create_department(department)
-            else:
-                # Usar URL si se proporcionó
-                image_url = request.form.get("image_url", "").strip() or None
-                department = build_department(image_url)
-                department = department_service.create_department(department)
+            file = request.files.get("image")
+            file_content, error = read_valid_image(file, "imagen principal")
+            if error:
+                flash(error, "error")
+                return render_template("admin/new_department.html")
+
+            if not file_content:
+                flash("Debes subir una imagen principal del departamento", "error")
+                return render_template("admin/new_department.html")
+
+            if not department_service.storage_repo:
+                flash("No hay almacenamiento configurado para subir imágenes", "error")
+                return render_template("admin/new_department.html")
+
+            try:
+                uploaded_url = department_service.storage_repo.upload_file(
+                    file_content=file_content,
+                    file_name=file.filename
+                )
+            except Exception as img_error:
+                flash(f"Error al subir imagen: {str(img_error)}", "error")
+                return render_template("admin/new_department.html")
+
+            image_2 = request.files.get("image_2")
+            image_2_content, error = read_valid_image(image_2, "imagen 2")
+            if error:
+                flash(error, "error")
+                return render_template("admin/new_department.html")
+            if image_2_content:
+                try:
+                    image_url_2 = department_service.storage_repo.upload_file(
+                        file_content=image_2_content,
+                        file_name=image_2.filename
+                    )
+                except Exception as img_error:
+                    flash(f"Error al subir imagen 2: {str(img_error)}", "error")
+                    return render_template("admin/new_department.html")
+
+            image_3 = request.files.get("image_3")
+            image_3_content, error = read_valid_image(image_3, "imagen 3")
+            if error:
+                flash(error, "error")
+                return render_template("admin/new_department.html")
+            if image_3_content:
+                try:
+                    image_url_3 = department_service.storage_repo.upload_file(
+                        file_content=image_3_content,
+                        file_name=image_3.filename
+                    )
+                except Exception as img_error:
+                    flash(f"Error al subir imagen 3: {str(img_error)}", "error")
+                    return render_template("admin/new_department.html")
+
+            department = build_department(uploaded_url)
+            department = department_service.create_department(department)
             
             flash("Departamento creado correctamente", "success")
             return redirect(url_for("admin.departments_list"))
@@ -557,36 +597,89 @@ def edit_department(department_id: str):
             department.parking = bool(request.form.get("parking"))
             department.furnished = bool(request.form.get("furnished"))
             department.allow_pets = bool(request.form.get("allow_pets"))
-            department.image_url_2 = request.form.get("image_url_2", "").strip() or None
-            department.image_url_3 = request.form.get("image_url_3", "").strip() or None
-            
-            # Manejar imagen
-            if 'image' in request.files:
-                file = request.files['image']
-                if file and file.filename:
-                    file_content = file.read()
-                    if len(file_content) > 0:
-                        max_size = 5 * 1024 * 1024
-                        if len(file_content) > max_size:
-                            flash("La imagen es demasiado grande. Máximo 5MB", "error")
-                            return render_template("admin/edit_department.html", department=department)
-                        
-                        try:
-                            department = department_service.upload_department_image(
-                                department_id=department_id,
-                                file_content=file_content,
-                                file_name=file.filename
-                            )
-                        except Exception as img_error:
-                            flash(f"Error al subir imagen: {str(img_error)}", "warning")
-                            # Continuar con la actualización sin cambiar la imagen
-                            department.image_url = request.form.get("image_url", "").strip() or department.image_url
-                    else:
-                        department.image_url = request.form.get("image_url", "").strip() or department.image_url
-                else:
-                    department.image_url = request.form.get("image_url", "").strip() or department.image_url
-            else:
-                department.image_url = request.form.get("image_url", "").strip() or department.image_url
+            if not department_service.storage_repo:
+                flash("No hay almacenamiento configurado para subir imágenes", "error")
+                return render_template("admin/edit_department.html", department=department)
+
+            image_url_2 = department.image_url_2
+            image_url_3 = department.image_url_3
+            delete_image = request.form.get("delete_image") == "1"
+            delete_image_2 = request.form.get("delete_image_2") == "1"
+            delete_image_3 = request.form.get("delete_image_3") == "1"
+            old_main_image = department.image_url
+
+            if delete_image_2 and image_url_2:
+                if not department_service.storage_repo.delete_file(image_url_2):
+                    flash("No se pudo eliminar la imagen 2 actual", "warning")
+                image_url_2 = None
+
+            if delete_image_3 and image_url_3:
+                if not department_service.storage_repo.delete_file(image_url_3):
+                    flash("No se pudo eliminar la imagen 3 actual", "warning")
+                image_url_3 = None
+
+            # Manejar imagen principal
+            file = request.files.get("image")
+            file_content, error = read_valid_image(file, "imagen principal")
+            if error:
+                flash(error, "error")
+                return render_template("admin/edit_department.html", department=department)
+
+            if delete_image and not file_content:
+                flash("Debes subir una nueva imagen principal para reemplazar la actual", "error")
+                return render_template("admin/edit_department.html", department=department)
+
+            if file_content:
+                try:
+                    department.image_url = department_service.storage_repo.upload_file(
+                        file_content=file_content,
+                        file_name=file.filename
+                    )
+                    if old_main_image:
+                        department_service.storage_repo.delete_file(old_main_image)
+                except Exception as img_error:
+                    flash(f"Error al subir imagen: {str(img_error)}", "warning")
+
+            image_2 = request.files.get("image_2")
+            image_2_content, error = read_valid_image(image_2, "imagen 2")
+            if error:
+                flash(error, "error")
+                return render_template("admin/edit_department.html", department=department)
+            if image_2_content:
+                try:
+                    new_url_2 = department_service.storage_repo.upload_file(
+                        file_content=image_2_content,
+                        file_name=image_2.filename
+                    )
+                    if image_url_2:
+                        department_service.storage_repo.delete_file(image_url_2)
+                    image_url_2 = new_url_2
+                except Exception as img_error:
+                    flash(f"Error al subir imagen 2: {str(img_error)}", "warning")
+
+            image_3 = request.files.get("image_3")
+            image_3_content, error = read_valid_image(image_3, "imagen 3")
+            if error:
+                flash(error, "error")
+                return render_template("admin/edit_department.html", department=department)
+            if image_3_content:
+                try:
+                    new_url_3 = department_service.storage_repo.upload_file(
+                        file_content=image_3_content,
+                        file_name=image_3.filename
+                    )
+                    if image_url_3:
+                        department_service.storage_repo.delete_file(image_url_3)
+                    image_url_3 = new_url_3
+                except Exception as img_error:
+                    flash(f"Error al subir imagen 3: {str(img_error)}", "warning")
+
+            if not department.image_url:
+                flash("Debes mantener o subir al menos una imagen para el departamento", "error")
+                return render_template("admin/edit_department.html", department=department)
+
+            department.image_url_2 = image_url_2
+            department.image_url_3 = image_url_3
             
             department = department_service.update_department(department)
             flash("Departamento actualizado correctamente", "success")
