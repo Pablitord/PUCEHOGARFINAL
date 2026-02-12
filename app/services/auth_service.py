@@ -37,8 +37,7 @@ class AuthService:
         # Asignar password hash
         user.password_hash = generate_password_hash(password.strip())
         
-        # TODO: En producción, aquí deberías usar Supabase Auth para crear el usuario
-        # y luego guardar los datos adicionales en la tabla users
+        
         
         # Guardar en BD
         user = self.user_repo.create(user)
@@ -48,8 +47,7 @@ class AuthService:
         """
         Autentica un usuario.
         
-        Nota: En producción, esto debería usar Supabase Auth.
-        Por ahora, solo verifica que el usuario exista.
+    
         """
         user = self.user_repo.get_by_email(email)
         if not user or not user.password_hash:

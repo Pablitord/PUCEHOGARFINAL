@@ -16,9 +16,7 @@ class SupabaseStorageRepository:
         """
         Inicializa el repositorio de storage.
         
-        Args:
-            client: Cliente de Supabase (opcional)
-            use_service_role: Si True, usa Service Role Key para bypasear RLS (recomendado)
+        
         """
         if use_service_role:
             self.client = client or SupabaseClient.get_service_role_client()
